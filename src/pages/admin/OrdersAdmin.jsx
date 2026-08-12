@@ -1,0 +1,87 @@
+import { useEffect, useState } from 'react'
+import { useLanguage } from '../../i18n/LanguageContext'
+import { supabase } from '../../lib/supabaseClient'
+
+const STATUS_KEYS = {
+  new: 'order_status_new', preparing: 'order_status_preparing',
+  shipped: 'order_status_shipped', delivered: 'order_status_delivered',
+}
+const STATUS_COLORS = {
+  new: 'bg-secondary-container text-on-secondary-container',
+  preparing: 'bg-yellow-100 text-yellow-800',
+  shipped: 'bg-blue-100 text-blue-800',
+  delivered: 'bg-green-100 text-green-800',
+}
+
+export default function OrdersAdmin() {
+  const { t, lang } = useLanguage()
+  const [orders, setOrders] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  async function load() {
+    setLoading(true)
+    const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false })
+    setOrders(data ?? [])
+    setLoading(false)
+  }
+
+  useEffect(() => { load() }, [])
+
+  async function updateStatus(id, status) {
+    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)))
+    await supabase.from('orders').update({ status }).eq('id', id)
+  }
+
+  return (
+    <>
+      <h1 className="font-headline-md text-headline-md text-on-surface dark:text-white border-b border-outline-variant/50 pb-6">
+        {t('admin_orders')}
+      </h1>
+
+      {loading ? (
+        <p className="font-body-md text-sm text-on-surface-variant">{t('loading')}</p>
+      ) : orders.length === 0 ? (
+        <p className="font-body-md text-sm text-on-surface-variant">{t('admin_no_orders')}</p>
+      ) : (
+        <div className="bg-surface-container-lowest rounded-xl shadow-[0_20px_20px_rgba(212,132,154,0.03)] border border-outline-variant/20 overflow-x-auto">
+          <table className="w-full text-start font-body-md text-body-md">
+            <thead>
+              <tr className="border-b-2 border-surface-container-high">
+                {['المنتج', t('admin_customer'), 'البلدية', t('admin_date'), t('admin_total_amount'), t('admin_status_label')].map((h) => (
+                  <th key={h} className="p-3 font-label-sm text-label-sm text-on-surface-variant">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-outline-variant/20">
+              {orders.map((o) => (
+                <tr key={o.id} className="hover:bg-surface-container/40 transition-colors">
+                  <td className="p-3">{o.product_name}</td>
+                  <td className="p-3">
+                    {o.customer_name}
+                    <div className="text-xs text-on-surface-variant">{o.phone}</div>
+                  </td>
+                  <td className="p-3">{o.commune}</td>
+                  <td className="p-3 text-xs text-on-surface-variant">
+                    {new Date(o.created_at).toLocaleDateString(lang === 'ar' ? 'ar-DZ' : 'en-US')}
+                  </td>
+                  <td className="p-3 font-bold text-primary">{o.total ? `${o.total} د.ج` : '—'}</td>
+                  <td className="p-3">
+                    <select
+                      value={o.status}
+                      onChange={(e) => updateStatus(o.id, e.target.value)}
+                      className={`rounded-full px-3 py-1 text-xs font-bold border-0 ${STATUS_COLORS[o.status] || ''}`}
+                    >
+                      {Object.entries(STATUS_KEYS).map(([value, key]) => (
+                        <option key={value} value={value}>{t(key)}</option>
+                      ))}
+                    </select>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
+  )
+}
