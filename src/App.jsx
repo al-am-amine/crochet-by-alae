@@ -5,6 +5,8 @@ import ProductDetail from './pages/ProductDetail'
 import CustomRequest from './pages/CustomRequest'
 import CartCheckout from './pages/CartCheckout'
 import About from './pages/About'
+import Shipping from './pages/Shipping'
+import Faq from './pages/Faq'
 import AdminLogin from './pages/AdminLogin'
 import AdminLayout from './pages/admin/AdminLayout'
 import DashboardHome from './pages/admin/DashboardHome'
@@ -23,6 +25,8 @@ export default function App() {
       <Route path="/custom-design" element={<CustomRequest />} />
       <Route path="/cart" element={<CartCheckout />} />
       <Route path="/about" element={<About />} />
+      <Route path="/shipping" element={<Shipping />} />
+      <Route path="/faq" element={<Faq />} />
 
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin" element={<AdminLayout />}>

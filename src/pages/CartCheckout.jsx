@@ -9,6 +9,7 @@ import { useCart } from '../lib/CartContext'
 import { supabase } from '../lib/supabaseClient'
 import { getEnabledChannels, sendOrderViaChannel } from '../lib/contactChannels'
 import { sendOrderNotification } from '../lib/email'
+import { DELIVERY_OPTIONS } from '../lib/deliveryAreas'
 
 const CHANNEL_STYLE = {
   whatsapp: { icon: 'chat', className: 'bg-[#25D366] text-white hover:bg-opacity-90' },
@@ -20,14 +21,6 @@ const CHANNEL_STYLE = {
   tiktok: { icon: 'music_note', className: 'bg-black text-white hover:bg-opacity-90' },
 }
 const CHANNEL_LABELS = { whatsapp: 'order_via_whatsapp', instagram: 'order_via_instagram', phone: 'order_via_phone' }
-
-// Blida province communes (baladiyas) — used for the delivery dropdown
-// since delivery is currently restricted to Blida only.
-const BLIDA_COMMUNES = [
-  'البليدة', 'الأربعاء', 'بوفاريك', 'موزاية', 'بوعينان', 'العفرون', 'مفتاح',
-  'شبلي', 'وادي العلايق', 'الصومعة', 'الشريعة', 'حمام ملوان', 'بني تامو',
-  'أولاد يعيش', 'بني مراد', 'شريعة', 'الداموس', 'جبابرة', 'أولاد سلامة',
-]
 
 export default function CartCheckout() {
   const { t, lang } = useLanguage()
@@ -220,8 +213,8 @@ export default function CartCheckout() {
                     className="bg-surface border border-outline-variant rounded-lg p-unit-2 font-body-md text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors appearance-none"
                   >
                     <option value="">{t('commune_placeholder')}</option>
-                    {BLIDA_COMMUNES.map((c) => (
-                      <option key={c} value={c}>{c}</option>
+                    {DELIVERY_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>{lang === 'ar' ? option.labelAr : option.labelEn}</option>
                     ))}
                   </select>
                 </div>

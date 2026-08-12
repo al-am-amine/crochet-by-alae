@@ -28,7 +28,7 @@ create table if not exists orders (
   customer_name text not null,
   phone text not null,
   email text, -- optional; used as reply-to on the order-notification email
-  commune text not null, -- baladiya within Blida province
+  commune text not null, -- delivery area and commune (Blida or Algiers province)
   address text not null,
   total numeric,
   status text not null default 'new', -- new | preparing | shipped | delivered
