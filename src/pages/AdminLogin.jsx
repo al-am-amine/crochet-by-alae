@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 import { useLanguage } from '../i18n/LanguageContext'
 import { supabase } from '../lib/supabaseClient'
-import { ADMIN_EMAIL, logAdminLoginAttempt } from '../lib/adminAudit'
+import { ADMIN_EMAIL, checkAdminLoginGate, getAdminAttemptContext, logAdminLoginAttempt } from '../lib/adminAudit'
 
 export default function AdminLogin() {
   const { t } = useLanguage()
@@ -24,26 +24,33 @@ export default function AdminLogin() {
     setLoading(true)
     setError(null)
     const normalizedEmail = email.trim().toLowerCase()
+    const gate = await checkAdminLoginGate(normalizedEmail)
+    if (!gate.allowed) {
+      setLoading(false)
+      setError(t('admin_login_rate_limited'))
+      return
+    }
+    const attemptContext = getAdminAttemptContext()
     const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
     setLoading(false)
     if (error) {
       const nextAttempts = failedAttempts + 1
       setFailedAttempts(nextAttempts)
       sessionStorage.setItem('admin_failed_attempts', String(nextAttempts))
-      await logAdminLoginAttempt({ email: normalizedEmail, success: false, details: { reason: 'invalid_credentials' } })
+      await logAdminLoginAttempt({ email: normalizedEmail, success: false, details: { reason: 'invalid_credentials', ...attemptContext } })
       setError(t('admin_login_error'))
       return
     }
 
     const isAllowedAdmin = data.session?.user?.email?.trim().toLowerCase() === ADMIN_EMAIL
     if (!isAllowedAdmin) {
-      await logAdminLoginAttempt({ email: normalizedEmail, success: false, details: { reason: 'unauthorized_account' } })
+      await logAdminLoginAttempt({ email: normalizedEmail, success: false, details: { reason: 'unauthorized_account', ...attemptContext } })
       await supabase.auth.signOut()
       setError(t('admin_login_not_authorized'))
       return
     }
 
-    await logAdminLoginAttempt({ email: normalizedEmail, success: true, details: { reason: 'password_login' } })
+    await logAdminLoginAttempt({ email: normalizedEmail, success: true, details: { reason: 'password_login', ...attemptContext } })
     sessionStorage.removeItem('admin_failed_attempts')
     setFailedAttempts(0)
     navigate('/admin')
@@ -59,6 +66,7 @@ export default function AdminLogin() {
           <div className="text-center mb-10">
             <h1 className="font-headline-lg text-headline-lg text-primary italic mb-2 tracking-tight">Crochet by Alae</h1>
             <p className="font-body-md text-body-md text-on-surface-variant">{t('admin_login_title')}</p>
+            <p className="mt-3 text-xs leading-5 text-on-surface-variant/75">{t('admin_login_audit_notice')}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">

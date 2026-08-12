@@ -7,6 +7,33 @@ import { supabase } from './supabaseClient'
 
 export const ADMIN_EMAIL = (import.meta.env.VITE_ADMIN_EMAIL || 'admin.crochetbyalae@gmail.com').trim().toLowerCase()
 
+export function getAdminAttemptContext() {
+  if (typeof navigator === 'undefined') return {}
+
+  return {
+    browser_hint: String(navigator.userAgent || '').slice(0, 180),
+    platform_hint: String(navigator.platform || '').slice(0, 80),
+    language: String(navigator.language || '').slice(0, 32),
+    timezone: String(Intl.DateTimeFormat().resolvedOptions().timeZone || '').slice(0, 64),
+  }
+}
+
+export async function checkAdminLoginGate(email) {
+  try {
+    const { data, error } = await supabase.rpc('admin_login_gate', {
+      attempted_email: email.trim().toLowerCase(),
+    })
+    if (error) return { allowed: true }
+    return {
+      allowed: data?.allowed !== false,
+      retryAfterSeconds: Number(data?.retry_after_seconds || 0),
+    }
+  } catch (error) {
+    console.warn('Admin login gate unavailable', error)
+    return { allowed: true }
+  }
+}
+
 export async function logAdminLoginAttempt({ email, success, details = {} }) {
   try {
     await supabase.rpc('log_admin_login_attempt', {
@@ -19,11 +46,12 @@ export async function logAdminLoginAttempt({ email, success, details = {} }) {
   }
 }
 
-export async function logAdminPageAccessAttempt({ email = '[unknown]', path = '/admin' } = {}) {
+export async function logAdminPageAccessAttempt({ email = '[unknown]', path = '/admin', metadata = {} } = {}) {
   try {
     await supabase.rpc('log_admin_page_attempt', {
       attempted_email: email.trim().toLowerCase() || '[unknown]',
       path_name: path,
+      metadata,
     })
   } catch (error) {
     console.warn('Admin page audit unavailable', error)

@@ -8,7 +8,7 @@ import Icon from '../../components/Icon'
 import { useAuth } from '../../lib/AuthContext'
 import { useLanguage } from '../../i18n/LanguageContext'
 import { supabase } from '../../lib/supabaseClient'
-import { logAdminAction, logAdminPageAccessAttempt } from '../../lib/adminAudit'
+import { getAdminAttemptContext, logAdminAction, logAdminPageAccessAttempt } from '../../lib/adminAudit'
 
 const NAV_ITEMS = [
   { to: '/admin', end: true, icon: 'dashboard', key: 'admin_dashboard' },
@@ -85,7 +85,7 @@ export default function AdminLayout() {
   useEffect(() => {
     if (!loading && !isAdmin && !accessAuditSent.current) {
       accessAuditSent.current = true
-      logAdminPageAccessAttempt({ email: session?.user?.email || '[unknown]', path: window.location.pathname })
+      logAdminPageAccessAttempt({ email: session?.user?.email || '[unknown]', path: window.location.pathname, metadata: getAdminAttemptContext() })
     }
   }, [loading, isAdmin, session])
 

@@ -26,7 +26,7 @@ const ACTION_LABELS = {
 function formatDetails(details) {
   if (!details || typeof details !== 'object') return '—'
   return Object.entries(details)
-    .map(([key, value]) => `${key}: ${String(value)}`)
+    .map(([key, value]) => `${key}: ${String(value).slice(0, 180)}`)
     .join(' · ') || '—'
 }
 
