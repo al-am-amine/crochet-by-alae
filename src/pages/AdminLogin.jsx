@@ -1,8 +1,13 @@
+/*
+  Security reminder: this page audits only attempts to enter the admin area;
+  it does not inspect or track public storefront visitors.
+*/
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 import { useLanguage } from '../i18n/LanguageContext'
 import { supabase } from '../lib/supabaseClient'
+import { ADMIN_EMAIL, logAdminLoginAttempt } from '../lib/adminAudit'
 
 export default function AdminLogin() {
   const { t } = useLanguage()
@@ -12,17 +17,35 @@ export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [failedAttempts, setFailedAttempts] = useState(() => Number(sessionStorage.getItem('admin_failed_attempts') || 0))
 
   async function handleSubmit(e) {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const normalizedEmail = email.trim().toLowerCase()
+    const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password })
     setLoading(false)
     if (error) {
+      const nextAttempts = failedAttempts + 1
+      setFailedAttempts(nextAttempts)
+      sessionStorage.setItem('admin_failed_attempts', String(nextAttempts))
+      await logAdminLoginAttempt({ email: normalizedEmail, success: false, details: { reason: 'invalid_credentials' } })
       setError(t('admin_login_error'))
       return
     }
+
+    const isAllowedAdmin = data.session?.user?.email?.trim().toLowerCase() === ADMIN_EMAIL
+    if (!isAllowedAdmin) {
+      await logAdminLoginAttempt({ email: normalizedEmail, success: false, details: { reason: 'unauthorized_account' } })
+      await supabase.auth.signOut()
+      setError(t('admin_login_not_authorized'))
+      return
+    }
+
+    await logAdminLoginAttempt({ email: normalizedEmail, success: true, details: { reason: 'password_login' } })
+    sessionStorage.removeItem('admin_failed_attempts')
+    setFailedAttempts(0)
     navigate('/admin')
   }
 
@@ -75,13 +98,16 @@ export default function AdminLogin() {
               </div>
             </div>
 
-            {error && <p className="text-sm text-error">{error}</p>}
+            {error && <p className="text-sm text-error" role="alert">{error}</p>}
+            {failedAttempts >= 3 && (
+              <p className="text-sm text-secondary" role="status">{t('admin_repeated_failures_warning')}</p>
+            )}
 
             <div className="pt-4">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-primary hover:bg-on-primary-container text-on-primary font-label-sm text-label-sm py-4 rounded-lg shadow-sm transition-all duration-300 hover:shadow-md flex items-center justify-center gap-2 group disabled:opacity-50"
+                className="w-full bg-primary hover:bg-on-primary-container text-on-primary font-label-sm text-label-sm py-4 rounded-lg shadow-sm transition-all duration-300 hover:shadow-md flex items-center justify-center gap-2 group disabled:opacity-50 motion-press"
               >
                 <span>{t('admin_login_btn')}</span>
                 <Icon name="arrow_forward" className="group-hover:-translate-x-1 transition-transform rtl:rotate-180" size={20} />

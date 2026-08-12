@@ -15,6 +15,7 @@ import OrdersAdmin from './pages/admin/OrdersAdmin'
 import CustomRequestsAdmin from './pages/admin/CustomRequestsAdmin'
 import CustomersAdmin from './pages/admin/CustomersAdmin'
 import SettingsAdmin from './pages/admin/SettingsAdmin'
+import SecurityLog from './pages/admin/SecurityLog'
 
 export default function App() {
   return (
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="custom-requests" element={<CustomRequestsAdmin />} />
         <Route path="customers" element={<CustomersAdmin />} />
         <Route path="settings" element={<SettingsAdmin />} />
+        <Route path="security-log" element={<SecurityLog />} />
       </Route>
     </Routes>
   )

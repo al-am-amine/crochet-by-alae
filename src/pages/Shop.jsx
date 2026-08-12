@@ -1,9 +1,14 @@
+/*
+  Style reminder: “خيط هادئ” — retain the original shop hierarchy, colors,
+  rounded controls, and product grid; motion should clarify state changes only.
+*/
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import GeoBanner from '../components/GeoBanner'
 import ProductCard from '../components/ProductCard'
+import Reveal from '../components/Reveal'
 import { useLanguage } from '../i18n/LanguageContext'
 import { supabase } from '../lib/supabaseClient'
 
@@ -35,11 +40,11 @@ export default function Shop() {
     activeCategory === 'all' ? products : products.filter((p) => p.category === activeCategory)
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen page-shell">
       <Header />
 
       <main className="max-w-container-max mx-auto px-5 md:px-margin-edge py-section-gap min-h-screen">
-        <div className="flex flex-col items-center mb-section-gap text-center space-y-6">
+        <Reveal as="div" className="flex flex-col items-center mb-section-gap text-center space-y-6">
           <h1 className="font-display-lg text-headline-lg md:text-display-lg text-on-surface dark:text-white">
             {t('nav_shop_all')}
           </h1>
@@ -74,7 +79,7 @@ export default function Shop() {
               </button>
             ))}
           </div>
-        </div>
+        </Reveal>
 
         {loading ? (
           <p className="text-center text-sm text-on-surface-variant py-16">{t('loading')}</p>

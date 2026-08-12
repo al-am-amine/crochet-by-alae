@@ -1,8 +1,13 @@
+/*
+  Security reminder: record only authenticated admin product actions; never
+  add visitor or storefront browsing telemetry in this management screen.
+*/
 import { useEffect, useState } from 'react'
 import Icon from '../../components/Icon'
 import { useLanguage } from '../../i18n/LanguageContext'
 import { supabase } from '../../lib/supabaseClient'
 import { uploadImage } from '../../lib/storage'
+import { logAdminAction } from '../../lib/adminAudit'
 
 const EMPTY_PRODUCT = {
   name: '', description: '', category: '', price: '', show_price: false,
@@ -82,18 +87,27 @@ export default function ProductsAdmin() {
       images: editing.images || [],
       status: editing.status,
     }
-    if (editing.id) {
-      await supabase.from('products').update(payload).eq('id', editing.id)
-    } else {
-      await supabase.from('products').insert(payload)
+    const action = editing.id ? 'product_updated' : 'product_created'
+    const mutation = editing.id
+      ? await supabase.from('products').update(payload).eq('id', editing.id)
+      : await supabase.from('products').insert(payload).select('id').single()
+    if (mutation.error) {
+      setFormError(t('generic_error'))
+      return
     }
+    await logAdminAction(action, {
+      product_id: editing.id || mutation.data?.id || null,
+      category: payload.category,
+      has_images: payload.images.length > 0,
+    })
     setEditing(null)
     loadProducts()
   }
 
   async function handleDelete(id) {
     if (!confirm('تأكيد الحذف؟')) return
-    await supabase.from('products').delete().eq('id', id)
+    const { error } = await supabase.from('products').delete().eq('id', id)
+    if (!error) await logAdminAction('product_deleted', { product_id: id })
     loadProducts()
   }
 

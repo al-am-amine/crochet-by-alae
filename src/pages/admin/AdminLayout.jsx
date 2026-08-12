@@ -1,9 +1,14 @@
-import { useState } from 'react'
+/*
+  Security reminder: the admin shell protects the security log and keeps all
+  audit visibility inside the authenticated admin area; no public analytics is added.
+*/
+import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, Navigate } from 'react-router-dom'
 import Icon from '../../components/Icon'
 import { useAuth } from '../../lib/AuthContext'
 import { useLanguage } from '../../i18n/LanguageContext'
 import { supabase } from '../../lib/supabaseClient'
+import { logAdminAction, logAdminPageAccessAttempt } from '../../lib/adminAudit'
 
 const NAV_ITEMS = [
   { to: '/admin', end: true, icon: 'dashboard', key: 'admin_dashboard' },
@@ -12,6 +17,7 @@ const NAV_ITEMS = [
   { to: '/admin/custom-requests', icon: 'edit_note', key: 'admin_custom_requests' },
   { to: '/admin/customers', icon: 'group', key: 'admin_customers' },
   { to: '/admin/settings', icon: 'settings', key: 'admin_settings' },
+  { to: '/admin/security-log', icon: 'security', key: 'admin_security_log' },
 ]
 
 function SidebarContent({ t, onNavigate }) {
@@ -56,7 +62,10 @@ function SidebarContent({ t, onNavigate }) {
           {t('admin_add_product')}
         </NavLink>
         <button
-          onClick={() => supabase.auth.signOut()}
+          onClick={async () => {
+            await logAdminAction('admin_logout')
+            await supabase.auth.signOut()
+          }}
           className="flex items-center gap-3 p-3 text-on-surface-variant hover:bg-surface-container-high transition-all duration-300 rounded-lg hover:translate-x-[4px]"
         >
           <Icon name="logout" size={20} />
@@ -68,9 +77,17 @@ function SidebarContent({ t, onNavigate }) {
 }
 
 export default function AdminLayout() {
-  const { loading, isAdmin } = useAuth()
+  const { loading, isAdmin, session } = useAuth()
   const { t } = useLanguage()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const accessAuditSent = useRef(false)
+
+  useEffect(() => {
+    if (!loading && !isAdmin && !accessAuditSent.current) {
+      accessAuditSent.current = true
+      logAdminPageAccessAttempt({ email: session?.user?.email || '[unknown]', path: window.location.pathname })
+    }
+  }, [loading, isAdmin, session])
 
   if (loading) {
     return <p className="min-h-screen flex items-center justify-center text-sm">{t('loading')}</p>

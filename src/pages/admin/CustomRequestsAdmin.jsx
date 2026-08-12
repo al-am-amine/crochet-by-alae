@@ -1,6 +1,8 @@
+/* Security reminder: audit only admin review changes; never track public request browsing. */
 import { useEffect, useState } from 'react'
 import { useLanguage } from '../../i18n/LanguageContext'
 import { supabase } from '../../lib/supabaseClient'
+import { logAdminAction } from '../../lib/adminAudit'
 
 const STATUS_KEYS = {
   new: 'request_status_new', reviewing: 'request_status_reviewing',
@@ -23,8 +25,12 @@ export default function CustomRequestsAdmin() {
   useEffect(() => { load() }, [])
 
   async function updateStatus(id, status) {
+    const previousStatus = requests.find((request) => request.id === id)?.status || null
     setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)))
-    await supabase.from('custom_requests').update({ status }).eq('id', id)
+    const { error } = await supabase.from('custom_requests').update({ status }).eq('id', id)
+    if (!error && previousStatus !== status) {
+      await logAdminAction('custom_request_status_updated', { request_id: id, from_status: previousStatus, to_status: status })
+    }
   }
 
   return (

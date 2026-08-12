@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from './supabaseClient'
+import { ADMIN_EMAIL } from './adminAudit'
 
 const AuthContext = createContext(null)
 
@@ -18,8 +19,10 @@ export function AuthProvider({ children }) {
     return () => listener.subscription.unsubscribe()
   }, [])
 
+  const isAdmin = session?.user?.email?.trim().toLowerCase() === ADMIN_EMAIL
+
   return (
-    <AuthContext.Provider value={{ session, loading, isAdmin: !!session }}>
+    <AuthContext.Provider value={{ session, loading, isAdmin, adminEmail: ADMIN_EMAIL }}>
       {children}
     </AuthContext.Provider>
   )

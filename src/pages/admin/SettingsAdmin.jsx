@@ -1,8 +1,10 @@
+/* Security reminder: audit admin setting changes only; never collect storefront visitor telemetry. */
 import { useEffect, useState } from 'react'
 import Icon from '../../components/Icon'
 import { useLanguage } from '../../i18n/LanguageContext'
 import { supabase } from '../../lib/supabaseClient'
 import { uploadImage } from '../../lib/storage'
+import { logAdminAction } from '../../lib/adminAudit'
 
 const CHANNEL_ICON = { whatsapp: 'chat', instagram: 'photo_camera', phone: 'call', tiktok: 'music_note' }
 
@@ -37,7 +39,8 @@ export default function SettingsAdmin() {
     const merged = { ...settings, ...next }
     setSettings(merged)
     const { id, ...payload } = merged
-    await supabase.from('site_settings').update(payload).eq('id', 1)
+    const { error } = await supabase.from('site_settings').update(payload).eq('id', 1)
+    if (!error) await logAdminAction('settings_updated', { fields: Object.keys(next) })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
@@ -62,21 +65,26 @@ export default function SettingsAdmin() {
   }
 
   async function saveChannel(channel) {
-    await supabase.from('contact_channels')
+    const { error } = await supabase.from('contact_channels')
       .update({ type: channel.type, value: channel.value, enabled: channel.enabled })
       .eq('id', channel.id)
+    if (!error) await logAdminAction('contact_channel_updated', { channel_id: channel.id, type: channel.type })
   }
 
   async function addChannel() {
     const { data } = await supabase.from('contact_channels')
       .insert({ type: 'whatsapp', value: '', enabled: false, sort_order: channels.length })
       .select().single()
-    if (data) setChannels((prev) => [...prev, data])
+    if (data) {
+      setChannels((prev) => [...prev, data])
+      await logAdminAction('contact_channel_created', { channel_id: data.id, type: data.type })
+    }
   }
 
   async function deleteChannel(id) {
     if (!confirm('تأكيد الحذف؟')) return
-    await supabase.from('contact_channels').delete().eq('id', id)
+    const { error } = await supabase.from('contact_channels').delete().eq('id', id)
+    if (!error) await logAdminAction('contact_channel_deleted', { channel_id: id })
     setChannels((prev) => prev.filter((c) => c.id !== id))
   }
 

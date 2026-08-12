@@ -1,6 +1,8 @@
+/* Security reminder: audit only admin status changes; do not add public visitor tracking. */
 import { useEffect, useState } from 'react'
 import { useLanguage } from '../../i18n/LanguageContext'
 import { supabase } from '../../lib/supabaseClient'
+import { logAdminAction } from '../../lib/adminAudit'
 
 const STATUS_KEYS = {
   new: 'order_status_new', preparing: 'order_status_preparing',
@@ -28,8 +30,12 @@ export default function OrdersAdmin() {
   useEffect(() => { load() }, [])
 
   async function updateStatus(id, status) {
+    const previousStatus = orders.find((order) => order.id === id)?.status || null
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)))
-    await supabase.from('orders').update({ status }).eq('id', id)
+    const { error } = await supabase.from('orders').update({ status }).eq('id', id)
+    if (!error && previousStatus !== status) {
+      await logAdminAction('order_status_updated', { order_id: id, from_status: previousStatus, to_status: status })
+    }
   }
 
   return (

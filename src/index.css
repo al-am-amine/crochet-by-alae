@@ -1,6 +1,16 @@
+/*
+  Style reminder: “خيط هادئ” — the original Crochet by Alae colors, icons,
+  typography, and layout are immutable here; motion stays short, subtle,
+  transform/opacity-based, and disabled when reduced motion is requested.
+*/
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --motion-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --motion-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
 
 html {
   scroll-behavior: smooth;
@@ -35,4 +45,78 @@ html {
 .hover-shadow:hover {
   box-shadow: 0 40px 40px rgba(212, 132, 154, 0.08);
   transform: translateY(-4px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity 560ms var(--motion-ease-out),
+      transform 560ms var(--motion-ease-out);
+    transition-delay: var(--reveal-delay, 0ms);
+    will-change: opacity, transform;
+  }
+
+  .reveal-on-scroll.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  .reveal-on-scroll[data-reveal-delay='40'] {
+    --reveal-delay: 40ms;
+  }
+
+  .reveal-on-scroll[data-reveal-delay='80'] {
+    --reveal-delay: 80ms;
+  }
+
+  .reveal-on-scroll[data-reveal-delay='120'] {
+    --reveal-delay: 120ms;
+  }
+
+  .reveal-on-scroll[data-reveal-delay='160'] {
+    --reveal-delay: 160ms;
+  }
+
+  .reveal-on-scroll[data-reveal-delay='200'] {
+    --reveal-delay: 200ms;
+  }
+
+  .motion-press {
+    transition: transform 160ms var(--motion-ease-out);
+  }
+
+  .motion-press:active {
+    transform: scale(0.97);
+  }
+
+  .motion-lift {
+    transition:
+      transform 260ms var(--motion-ease-out),
+      box-shadow 260ms var(--motion-ease-out);
+    will-change: transform;
+  }
+
+  .motion-lift:hover {
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .reveal-on-scroll,
+  .reveal-on-scroll.is-visible {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .motion-press,
+  .motion-lift {
+    transition: none;
+  }
 }
