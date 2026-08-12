@@ -1,3 +1,4 @@
+/* Style reminder: “خيط هادئ” — preserve the original crochet palette and layout; use only restrained opacity/transform motion and keep dark-mode text readable. */
 import { useState, useEffect } from 'react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
@@ -17,6 +18,8 @@ const CHANNEL_STYLE = {
   tiktok: { icon: 'music_note', className: 'bg-black text-white hover:bg-opacity-90' },
 }
 const CHANNEL_LABELS = { whatsapp: 'order_via_whatsapp', instagram: 'order_via_instagram', phone: 'order_via_phone' }
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024
+const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
 export default function CustomRequest() {
   const { t } = useLanguage()
@@ -34,7 +37,7 @@ export default function CustomRequest() {
   }, [])
 
   function validate() {
-    return description && name && phone
+    return Boolean(description.trim() && name.trim() && phone.trim())
   }
 
   async function handleSubmit(channel) {
@@ -51,13 +54,14 @@ export default function CustomRequest() {
         imageUrl = await uploadImage(imageFile, 'custom-requests')
       }
 
-      await supabase.from('custom_requests').insert({
+      const { error: requestError } = await supabase.from('custom_requests').insert({
         description,
         reference_image_url: imageUrl,
         preferred_colors: colors || null,
         customer_name: name,
         phone,
       })
+      if (requestError) throw requestError
 
       const result = await sendOrderViaChannel(channel, {
         productName: `طلب تصميم مخصص: ${description}`,
@@ -96,17 +100,17 @@ export default function CustomRequest() {
             <h1 className="font-display-lg text-headline-lg md:text-display-lg text-primary mb-2">
               {t('custom_page_title')}
             </h1>
-            <p className="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+            <p className="font-body-lg text-body-lg text-on-surface-variant dark:text-white/75 leading-relaxed">
               {t('custom_page_subtitle_long')}
             </p>
-            <p className="font-body-md text-body-md text-on-surface-variant mt-2">
+            <p className="font-body-md text-body-md text-on-surface-variant dark:text-white/75 mt-2">
               {t('custom_page_subtitle_short')}
             </p>
             <div className="mt-4 relative h-64 w-full rounded-2xl overflow-hidden shadow-[0_30px_30px_rgba(212,132,154,0.1)] group">
               <img
                 src="https://placehold.co/800x600/f5c6d0/79545d?text=Crochet+by+Alae"
                 alt=""
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                className="w-full h-full object-cover motion-lift transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
             </div>
@@ -137,10 +141,21 @@ export default function CustomRequest() {
                     type="file"
                     accept="image/*"
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null
+                      if (!file) return
+                      if (!ALLOWED_IMAGE_TYPES.has(file.type) || file.size > MAX_IMAGE_BYTES) {
+                        setImageFile(null)
+                        setFeedback({ type: 'error', message: t('image_validation_error') })
+                        e.target.value = ''
+                        return
+                      }
+                      setImageFile(file)
+                      setFeedback(null)
+                    }}
                   />
                   <Icon name="add_photo_alternate" className="text-outline group-hover:text-primary transition-colors" size={30} />
-                  <span className="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors text-center px-4">
+                  <span className="font-body-md text-body-md text-on-surface-variant dark:text-white/80 group-hover:text-primary transition-colors text-center px-4">
                     {imageFile ? imageFile.name : t('custom_image_dropzone')}
                   </span>
                 </div>
@@ -182,7 +197,7 @@ export default function CustomRequest() {
               </div>
 
               {feedback && (
-                <p className={`font-body-md text-sm ${feedback.type === 'error' ? 'text-error' : 'text-green-700'}`}>
+                  <p className={`font-body-md text-sm ${feedback.type === 'error' ? 'text-error' : 'text-green-700 dark:text-green-300'}`}>
                   {feedback.message}
                 </p>
               )}

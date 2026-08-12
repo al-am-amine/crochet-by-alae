@@ -70,6 +70,11 @@ export const translations = {
     order_success: 'تم إرسال طلبك بنجاح! سنتواصل معك قريباً.',
     choose_channel: 'اختاري طريقة الإرسال',
     fill_required_fields: 'يرجى تعبئة جميع الحقول المطلوبة.',
+    increase_quantity: 'زيادة الكمية',
+    decrease_quantity: 'إنقاص الكمية',
+    remove_item: 'حذف العنصر من السلة',
+    load_error: 'تعذر تحميل المنتجات حالياً. حاولي مرة أخرى لاحقاً.',
+    image_validation_error: 'اختاري صورة JPG أو PNG أو WebP بحجم لا يتجاوز 5 ميغابايت.',
 
     // Custom design request
     custom_page_title: 'اطلبي تصميمك الخاص',
@@ -301,6 +306,11 @@ export const translations = {
     order_success: 'Your order has been sent! We will contact you soon.',
     choose_channel: 'Choose how to send it',
     fill_required_fields: 'Please fill in all required fields.',
+    increase_quantity: 'Increase quantity',
+    decrease_quantity: 'Decrease quantity',
+    remove_item: 'Remove item from cart',
+    load_error: 'Products could not be loaded right now. Please try again later.',
+    image_validation_error: 'Choose a JPG, PNG, or WebP image no larger than 5 MB.',
 
     custom_page_title: 'Request Your Custom Design',
     custom_page_subtitle: 'Tell us your idea',

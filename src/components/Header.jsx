@@ -1,3 +1,5 @@
+/* Style reminder: “خيط هادئ” — preserve the original header hierarchy, colors,
+   icons, and spacing; motion only clarifies state changes and stays restrained. */
 import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import Icon from './Icon'
@@ -59,19 +61,19 @@ export default function Header() {
       <div className="flex items-center gap-unit">
         <button
           onClick={toggleLang}
-          className="text-primary font-label-sm text-label-sm cursor-pointer hover:opacity-70 transition-opacity"
+          className="text-primary font-label-sm text-label-sm cursor-pointer hover:opacity-70 transition-opacity motion-press"
         >
           {lang === 'ar' ? 'EN' : 'AR'}
         </button>
         <Link to="/cart" className="relative">
-          <Icon name="shopping_basket" className="text-primary cursor-pointer hover:opacity-70 transition-opacity" />
+          <Icon name="shopping_basket" className="text-primary cursor-pointer hover:opacity-70 transition-opacity motion-press" />
           {items.length > 0 && (
             <span className="absolute -top-1.5 -end-1.5 bg-primary text-on-primary text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
               {items.length}
             </span>
           )}
         </Link>
-        <button onClick={toggleTheme} aria-label="toggle theme">
+        <button onClick={toggleTheme} aria-label="toggle theme" className="motion-press">
           <Icon
             name={theme === 'light' ? 'dark_mode' : 'light_mode'}
             className="text-primary cursor-pointer hover:opacity-70 transition-opacity"
@@ -79,15 +81,17 @@ export default function Header() {
         </button>
         <button
           onClick={() => setMenuOpen((v) => !v)}
-          className="md:hidden"
+          className="md:hidden motion-press"
           aria-label="menu"
         >
           <Icon name={menuOpen ? 'close' : 'menu'} className="text-primary" />
         </button>
       </div>
 
-      {menuOpen && (
-        <div className="md:hidden absolute top-20 inset-x-0 bg-surface dark:bg-[#1A1A1A] border-t border-outline-variant/30 flex flex-col items-center gap-5 py-6 shadow-lg">
+      <div
+        className={`md:hidden absolute top-20 inset-x-0 bg-surface dark:bg-[#1A1A1A] border-t border-outline-variant/30 flex flex-col items-center gap-5 py-6 shadow-lg mobile-menu ${menuOpen ? 'is-open' : ''}`}
+        aria-hidden={!menuOpen}
+      >
           {NAV_LINKS.map((link) => (
             <NavLink
               key={link.to}
@@ -101,8 +105,7 @@ export default function Header() {
               {t(link.key)}
             </NavLink>
           ))}
-        </div>
-      )}
+      </div>
     </nav>
   )
 }

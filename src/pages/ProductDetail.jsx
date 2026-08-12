@@ -1,17 +1,24 @@
+/*
+  Style reminder: “خيط هادئ” — preserve the original editorial product detail,
+  palette, spacing, and image treatment; motion should clarify state only.
+*/
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import Icon from '../components/Icon'
 import { useLanguage } from '../i18n/LanguageContext'
 import { supabase } from '../lib/supabaseClient'
 import { useCart } from '../lib/CartContext'
+import { qaProducts } from '../lib/qaFixtures'
 
 export default function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { t, lang } = useLanguage()
   const { addItem } = useCart()
+  const [searchParams] = useSearchParams()
+  const qaMode = import.meta.env.DEV && searchParams.get('qa') === 'fixtures'
 
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -22,19 +29,37 @@ export default function ProductDetail() {
   const [justAdded, setJustAdded] = useState(false)
 
   useEffect(() => {
+    let cancelled = false
     setLoading(true)
-    supabase
-      .from('products')
-      .select('*')
-      .eq('id', id)
-      .single()
-      .then(({ data }) => {
-        setProduct(data)
+    setActiveImage(0)
+    setJustAdded(false)
+
+    async function loadProduct() {
+      if (qaMode) {
+        const fixture = qaProducts.find((item) => item.id === id) || null
+        if (!cancelled) {
+          setProduct(fixture)
+          setColor(fixture?.colors?.[0] || '')
+          setSize(fixture?.sizes?.[0] || '')
+          setLoading(false)
+        }
+        return
+      }
+
+      const { data, error } = await supabase.from('products').select('*').eq('id', id).single()
+      if (!cancelled) {
+        setProduct(error ? null : data)
         setColor(data?.colors?.[0] || '')
         setSize(data?.sizes?.[0] || '')
         setLoading(false)
-      })
-  }, [id])
+      }
+    }
+
+    loadProduct()
+    return () => {
+      cancelled = true
+    }
+  }, [id, qaMode])
 
   if (loading) {
     return (

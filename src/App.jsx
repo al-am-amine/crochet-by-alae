@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
 import Shop from './pages/Shop'
 import ProductDetail from './pages/ProductDetail'
@@ -18,8 +18,11 @@ import SettingsAdmin from './pages/admin/SettingsAdmin'
 import SecurityLog from './pages/admin/SecurityLog'
 
 export default function App() {
+  const location = useLocation()
+
   return (
-    <Routes>
+    <div className="route-transition" key={`${location.pathname}${location.search}`}>
+      <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/shop" element={<Shop />} />
       <Route path="/product/:id" element={<ProductDetail />} />
@@ -39,6 +42,7 @@ export default function App() {
         <Route path="settings" element={<SettingsAdmin />} />
         <Route path="security-log" element={<SecurityLog />} />
       </Route>
-    </Routes>
+      </Routes>
+    </div>
   )
 }

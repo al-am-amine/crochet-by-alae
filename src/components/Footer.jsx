@@ -1,9 +1,29 @@
+/*
+  Style reminder: “خيط هادئ” — keep the original quiet footer hierarchy and
+  palette; only improve navigation semantics and reliable contact links.
+*/
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import Icon from './Icon'
 import { useLanguage } from '../i18n/LanguageContext'
 import { getEnabledChannels } from '../lib/contactChannels'
 
 const CHANNEL_ICONS = { whatsapp: 'chat', instagram: 'photo_camera', phone: 'call', tiktok: 'music_note' }
+
+function channelHref(channel) {
+  const value = String(channel.value || '').trim()
+  if (channel.type === 'phone') return `tel:${value}`
+  if (channel.type === 'whatsapp') {
+    return /^https?:\/\//i.test(value) ? value : `https://wa.me/${value.replace(/\D/g, '')}`
+  }
+  if (channel.type === 'instagram' && !/^https?:\/\//i.test(value)) {
+    return `https://instagram.com/${value.replace(/^@/, '')}`
+  }
+  if (channel.type === 'tiktok' && !/^https?:\/\//i.test(value)) {
+    return `https://www.tiktok.com/@${value.replace(/^@/, '')}`
+  }
+  return value
+}
 
 export default function Footer() {
   const { t } = useLanguage()
@@ -25,12 +45,12 @@ export default function Footer() {
 
       <div className="flex flex-col items-center md:items-end gap-4">
         <div className="flex gap-6">
-          <a href="/shipping" className="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors">
+          <Link to="/shipping" className="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors">
             {t('footer_shipping')}
-          </a>
-          <a href="/faq" className="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors">
+          </Link>
+          <Link to="/faq" className="font-label-sm text-label-sm text-on-surface-variant hover:text-primary transition-colors">
             {t('footer_faq')}
-          </a>
+          </Link>
         </div>
 
         {channels.length > 0 && (
@@ -38,10 +58,10 @@ export default function Footer() {
             <span className="font-label-sm text-label-sm text-on-surface-variant">{t('footer_contact_us')}</span>
             {channels.map((c, i) => (
               <a
-                key={i}
-                href={c.type === 'phone' ? `tel:${c.value}` : c.value}
-                target="_blank"
-                rel="noreferrer"
+                key={c.id || `${c.type}-${c.value}`}
+                href={channelHref(c)}
+                target={c.type === 'phone' ? undefined : '_blank'}
+                rel={c.type === 'phone' ? undefined : 'noreferrer'}
                 aria-label={c.type}
               >
                 <Icon name={CHANNEL_ICONS[c.type] || 'link'} size={20} className="text-primary hover:opacity-70 transition-opacity" />

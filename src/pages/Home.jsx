@@ -63,7 +63,7 @@ export default function Home() {
             <Reveal as="div" delay={80} className="md:col-span-6 md:col-start-1 relative mt-12 md:mt-0">
               <div className="absolute inset-0 bg-secondary-container rounded-full blur-[80px] opacity-40 transform translate-x-1/4 -translate-y-1/4 z-0" />
               <div className="relative z-10 rounded-[2rem] overflow-hidden shadow-[0_30px_30px_rgba(212,132,154,0.08)] transform -rotate-2 hover:rotate-0 transition-transform duration-500">
-                <img src={PLACEHOLDER} alt="" className="w-full h-[320px] md:h-[600px] object-cover" />
+                <img src={PLACEHOLDER} alt="" className="w-full h-[320px] md:h-[600px] object-cover hero-visual-drift" />
               </div>
             </Reveal>
           </div>

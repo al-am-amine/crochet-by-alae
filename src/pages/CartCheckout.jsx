@@ -40,7 +40,8 @@ export default function CartCheckout() {
   }
 
   function validate() {
-    return form.name && form.phone && form.commune && form.address && items.length > 0
+    const emailIsValid = !form.email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
+    return Boolean(form.name.trim() && form.phone.trim() && form.commune && form.address.trim() && items.length > 0 && emailIsValid)
   }
 
   async function handleSubmit(channel) {
@@ -57,34 +58,36 @@ export default function CartCheckout() {
         product_name: item.name,
         color: item.color || null,
         size: item.size || null,
-        notes: item.notes || null,
+        notes: [item.notes, item.qty > 1 ? `quantity=${item.qty}` : null].filter(Boolean).join(' | ') || null,
         customer_name: form.name,
         phone: form.phone,
         email: form.email || null,
         commune: form.commune,
         address: form.address,
-        total: item.showPrice ? item.price * item.qty : null,
+        total: item.showPrice ? Number(item.price || 0) * Number(item.qty || 0) : null,
         channel: channel.type,
       }))
-      await supabase.from('orders').insert(rows)
+      const { error: orderError } = await supabase.from('orders').insert(rows)
+      if (orderError) throw orderError
 
-      await supabase.from('customers').upsert(
+      const { error: customerError } = await supabase.from('customers').upsert(
         { name: form.name, phone: form.phone, commune: form.commune },
         { onConflict: 'phone' },
       )
+      if (customerError) throw customerError
 
       const productSummary = items
         .map((i) => `${i.name}${i.color ? ` (${i.color})` : ''}${i.size ? ` - ${i.size}` : ''} x${i.qty}`)
         .join('، ')
 
-      const result = await sendOrderViaChannel(channel, {
+      const result = (await sendOrderViaChannel(channel, {
         productName: productSummary,
         customerName: form.name,
         commune: form.commune,
         address: form.address,
-      })
+      })) || { copied: false }
 
-      sendOrderNotification({
+      void sendOrderNotification({
         customerName: form.name,
         phone: form.phone,
         email: form.email,
@@ -131,10 +134,10 @@ export default function CartCheckout() {
 
               {items.map((item, idx) => (
                 <div
-                  key={idx}
+                  key={`${item.productId}-${item.color || ''}-${item.size || ''}`}
                   className="bg-surface-container-low rounded-xl p-unit-4 flex gap-unit-4 shadow-[0_20px_30px_rgba(212,132,154,0.03)] hover:shadow-[0_25px_35px_rgba(212,132,154,0.06)] transition-shadow duration-300 items-center"
                 >
-                  <img src={item.image} alt="" className="w-20 h-20 rounded-lg object-cover shrink-0" />
+                  <img src={item.image} alt={item.name || t('brand')} className="w-20 h-20 rounded-lg object-cover shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="font-label-sm text-label-sm text-on-surface dark:text-white">{item.name}</p>
                     <p className="font-body-md text-sm text-on-surface-variant">
@@ -142,14 +145,18 @@ export default function CartCheckout() {
                     </p>
                     <div className="flex items-center gap-3 mt-2">
                       <button
+                        type="button"
                         onClick={() => updateQty(idx, item.qty + 1)}
+                        aria-label={t('increase_quantity')}
                         className="w-7 h-7 flex items-center justify-center rounded-full border border-outline-variant hover:bg-surface-container-high"
                       >
                         +
                       </button>
                       <span className="font-body-md text-sm w-4 text-center">{item.qty}</span>
                       <button
+                        type="button"
                         onClick={() => updateQty(idx, item.qty - 1)}
+                        aria-label={t('decrease_quantity')}
                         className="w-7 h-7 flex items-center justify-center rounded-full border border-outline-variant hover:bg-surface-container-high"
                       >
                         −
@@ -161,7 +168,7 @@ export default function CartCheckout() {
                       ? `${(item.price * item.qty).toLocaleString(lang === 'ar' ? 'ar-DZ' : 'en-US')} ${lang === 'ar' ? 'د.ج' : 'DZD'}`
                       : t('price_on_request')}
                   </p>
-                  <button onClick={() => removeItem(idx)} aria-label="remove" className="text-outline hover:text-error transition-colors p-unit-2">
+                  <button type="button" onClick={() => removeItem(idx)} aria-label={t('remove_item')} className="text-outline hover:text-error transition-colors p-unit-2">
                     <Icon name="delete_outline" size={20} />
                   </button>
                 </div>

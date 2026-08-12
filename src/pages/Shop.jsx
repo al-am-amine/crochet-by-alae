@@ -11,6 +11,19 @@ import ProductCard from '../components/ProductCard'
 import Reveal from '../components/Reveal'
 import { useLanguage } from '../i18n/LanguageContext'
 import { supabase } from '../lib/supabaseClient'
+import { qaProducts } from '../lib/qaFixtures'
+
+function ProductSkeleton({ index }) {
+  return (
+    <div className="bg-surface-bright dark:bg-[#242019] rounded-lg custom-shadow overflow-hidden" aria-hidden="true">
+      <div className="h-80 skeleton-shimmer" style={{ '--skeleton-delay': `${index * 60}ms` }} />
+      <div className="p-6 space-y-3">
+        <div className="h-5 w-3/4 rounded skeleton-shimmer" style={{ '--skeleton-delay': `${index * 60 + 40}ms` }} />
+        <div className="h-4 w-1/3 rounded skeleton-shimmer" style={{ '--skeleton-delay': `${index * 60 + 80}ms` }} />
+      </div>
+    </div>
+  )
+}
 
 export default function Shop() {
   const { t } = useLanguage()
@@ -18,20 +31,37 @@ export default function Shop() {
   const [categories, setCategories] = useState([])
   const [activeCategory, setActiveCategory] = useState('all')
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [searchParams] = useSearchParams()
 
   useEffect(() => {
     async function load() {
       setLoading(true)
+      setLoadError(false)
       let query = supabase.from('products').select('*').order('created_at', { ascending: false })
 
       const filter = searchParams.get('filter')
       if (filter === 'new') query = query.limit(12)
 
-      const { data } = await query
-      setProducts(data ?? [])
-      setCategories([...new Set((data ?? []).map((p) => p.category).filter(Boolean))])
-      setLoading(false)
+      try {
+        if (import.meta.env.DEV && searchParams.get('qa') === 'fixtures') {
+          setProducts(qaProducts)
+          setCategories([...new Set(qaProducts.map((p) => p.category))])
+          return
+        }
+
+        const { data, error } = await query
+        if (error) throw error
+        setProducts(data ?? [])
+        setCategories([...new Set((data ?? []).map((p) => p.category).filter(Boolean))])
+      } catch (error) {
+        console.error('Failed to load products', error)
+        setProducts([])
+        setCategories([])
+        setLoadError(true)
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [searchParams])
@@ -56,7 +86,9 @@ export default function Shop() {
 
           <div className="flex flex-wrap justify-center gap-unit pt-4">
             <button
+              type="button"
               onClick={() => setActiveCategory('all')}
+              aria-pressed={activeCategory === 'all'}
               className={`px-6 py-2 rounded-full font-label-sm text-label-sm transition-all ${
                 activeCategory === 'all'
                   ? 'bg-primary text-on-primary shadow-sm scale-105'
@@ -66,9 +98,11 @@ export default function Shop() {
               {t('filter_all')}
             </button>
             {categories.map((c) => (
-              <button
-                key={c}
-                onClick={() => setActiveCategory(c)}
+                <button
+                  type="button"
+                  key={c}
+                  onClick={() => setActiveCategory(c)}
+                  aria-pressed={activeCategory === c}
                 className={`px-6 py-2 rounded-full font-label-sm text-label-sm transition-all ${
                   activeCategory === c
                     ? 'bg-primary text-on-primary shadow-sm scale-105'
@@ -82,13 +116,19 @@ export default function Shop() {
         </Reveal>
 
         {loading ? (
-          <p className="text-center text-sm text-on-surface-variant py-16">{t('loading')}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter" role="status" aria-label={t('loading')}>
+            {Array.from({ length: 6 }, (_, index) => (
+              <ProductSkeleton key={index} index={index} />
+            ))}
+          </div>
+        ) : loadError ? (
+          <p className="text-center text-sm text-error py-16">{t('load_error')}</p>
         ) : visible.length === 0 ? (
           <p className="text-center text-sm text-on-surface-variant py-16">{t('no_products_yet')}</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter">
-            {visible.map((p) => (
-              <ProductCard key={p.id} product={p} />
+            {visible.map((p, index) => (
+              <ProductCard key={p.id} product={p} delay={Math.min(index * 60, 360)} />
             ))}
           </div>
         )}

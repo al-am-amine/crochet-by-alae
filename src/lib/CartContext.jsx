@@ -30,7 +30,9 @@ export function CartProvider({ children }) {
 
   function updateQty(index, qty) {
     setItems((prev) =>
-      prev.map((i, idx) => (idx === index ? { ...i, qty: Math.max(1, qty) } : i)).filter((i) => i.qty > 0),
+      prev
+        .map((i, idx) => (idx === index ? { ...i, qty: Math.max(0, Number(qty) || 0) } : i))
+        .filter((i) => i.qty > 0),
     )
   }
 
@@ -42,7 +44,7 @@ export function CartProvider({ children }) {
     setItems([])
   }
 
-  const total = items.reduce((sum, i) => sum + (i.showPrice ? (i.price || 0) * i.qty : 0), 0)
+  const total = items.reduce((sum, i) => sum + (i.showPrice ? Number(i.price || 0) * Number(i.qty || 0) : 0), 0)
 
   return (
     <CartContext.Provider value={{ items, addItem, updateQty, removeItem, clearCart, total }}>

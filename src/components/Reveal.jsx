@@ -39,6 +39,7 @@ export default function Reveal({ as: Element = 'div', children, className = '', 
       ref={elementRef}
       className={`reveal-on-scroll ${visible ? 'is-visible' : ''} ${className}`.trim()}
       data-reveal-delay={delayValue}
+      style={{ '--reveal-delay': `${delayValue}ms` }}
       {...props}
     >
       {children}
