@@ -27,6 +27,7 @@ export default function ProductsAdmin() {
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(null)
   const [uploading, setUploading] = useState(false)
+  const [formError, setFormError] = useState('')
 
   async function loadProducts() {
     setLoading(true)
@@ -37,8 +38,9 @@ export default function ProductsAdmin() {
 
   useEffect(() => { loadProducts() }, [])
 
-  function startNew() { setEditing({ ...EMPTY_PRODUCT }) }
+  function startNew() { setFormError(''); setEditing({ ...EMPTY_PRODUCT }) }
   function startEdit(p) {
+    setFormError('')
     setEditing({ ...p, colors: (p.colors || []).join(', '), sizes: (p.sizes || []).join(', ') })
   }
 
@@ -62,6 +64,13 @@ export default function ProductsAdmin() {
   }
 
   async function handleSave() {
+    const hasRequiredFields = editing.name.trim() && editing.description.trim() && editing.category.trim()
+    const hasValidPrice = !editing.show_price || (editing.price !== '' && Number(editing.price) >= 0)
+    if (!hasRequiredFields || !hasValidPrice) {
+      setFormError(t('admin_product_required_error'))
+      return
+    }
+    setFormError('')
     const payload = {
       name: editing.name,
       description: editing.description,
@@ -97,14 +106,14 @@ export default function ProductsAdmin() {
 
         <div className="bg-surface-container-low dark:bg-[#242019] rounded-xl p-gutter shadow-[0_20px_20px_rgba(212,132,154,0.03)] border border-outline-variant/30 space-y-4">
           <Field label={t('admin_product_name')}>
-            <input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} className={inputClass} />
+            <input required value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} className={inputClass} />
           </Field>
           <Field label={t('admin_product_desc')}>
-            <textarea value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })} rows={3} className={`${inputClass} resize-none`} />
+            <textarea required value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })} rows={3} className={`${inputClass} resize-none`} />
           </Field>
           <div className="grid grid-cols-2 gap-4">
             <Field label={t('admin_product_category')}>
-              <input value={editing.category} onChange={(e) => setEditing({ ...editing, category: e.target.value })} className={inputClass} />
+              <input required value={editing.category} onChange={(e) => setEditing({ ...editing, category: e.target.value })} className={inputClass} />
             </Field>
             <Field label={t('admin_product_status')}>
               <select value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value })} className={inputClass}>
@@ -117,7 +126,7 @@ export default function ProductsAdmin() {
 
           <div className="grid grid-cols-2 gap-4 items-end">
             <Field label={t('admin_product_price')}>
-              <input type="number" value={editing.price} onChange={(e) => setEditing({ ...editing, price: e.target.value })} className={inputClass} />
+              <input type="number" min="0" required={editing.show_price} value={editing.price} onChange={(e) => setEditing({ ...editing, price: e.target.value })} className={inputClass} />
             </Field>
             <label className="flex items-center gap-2 font-label-sm text-label-sm mb-3">
               <input type="checkbox" checked={editing.show_price} onChange={(e) => setEditing({ ...editing, show_price: e.target.checked })} />
@@ -148,6 +157,8 @@ export default function ProductsAdmin() {
               </label>
             </div>
           </Field>
+
+          {formError && <p role="alert" className="font-body-md text-sm text-error">{formError}</p>}
 
           <div className="flex gap-3 pt-2">
             <button onClick={handleSave} className="bg-primary text-on-primary rounded-lg px-6 py-2.5 font-label-sm text-label-sm hover:opacity-90 transition-opacity">
