@@ -50,3 +50,9 @@ The FAQ language control switched the page to Arabic with RTL navigation and Ara
 The development-only `?qa=fixtures` route exposed three local fixture products and category filters without writing to Supabase. Opening the basket fixture rendered its detail page, color and size controls, notes textarea, delivery hint, and description. Clicking Add to Cart incremented the cart badge and changed the action to Go to cart, confirming the core cart transition with non-production data.
 
 After rebuilding, `/product/1` rendered the improved empty state with the inventory icon, localized not-found heading, supporting copy, and a visible Browse the shop action. The footer stayed anchored below the content in both the Arabic RTL and dark-theme state. Fixture image URLs remain development-only test data and are not used by production routes.
+
+## Final build and deployment check
+
+The final Vite build completed successfully after merging the remote delivery commits. The local branch now contains the delivery pages, bilingual delivery translations, the separated Super Admin portal, RBAC protections, dark-mode contrast fixes, FAQ accordion, empty states, and QA notes. The generated bundle warning concerns chunk size only; it did not fail the build.
+
+The deployment request reached the correct Netlify site, but Netlify marked it `skipped` with the account-level message `production deploys are paused because your team has used all of its available credits for this billing cycle`. The live site remains available and its public home, FAQ, and admin-login routes responded through HTML extraction. The updated source is therefore ready locally, but the live domain still cannot receive this build until Netlify resumes production deploys or the team changes its billing/hosting state.
