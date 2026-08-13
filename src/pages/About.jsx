@@ -3,10 +3,9 @@ import { Link } from 'react-router-dom'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import Icon from '../components/Icon'
+import BrandPlaceholder from '../components/BrandPlaceholder'
 import Reveal from '../components/Reveal'
 import { useLanguage } from '../i18n/LanguageContext'
-
-const PLACEHOLDER = 'https://placehold.co/900x800/f5c6d0/79545d?text=Crochet+by+Alae'
 
 export default function About() {
   const { t } = useLanguage()
@@ -24,11 +23,7 @@ export default function About() {
               <p className="font-body-lg text-body-lg text-on-surface-variant">{t('about_hero_body')}</p>
             </div>
             <div className="md:col-span-7 md:col-start-1 md:row-start-1 -mt-12 md:mt-0">
-              <img
-                src={PLACEHOLDER}
-                alt=""
-                className="w-full h-[320px] md:h-[600px] object-cover rounded-xl custom-shadow shadow-lg transition-transform hover:-translate-y-2 duration-500"
-              />
+              <BrandPlaceholder className="h-[320px] md:h-[600px] rounded-xl custom-shadow shadow-lg transition-transform hover:-translate-y-2 duration-500" />
             </div>
           </div>
         </Reveal>
@@ -42,7 +37,7 @@ export default function About() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter items-center">
             <div className="md:col-span-6 order-2 md:order-1 relative">
               <div className="absolute inset-0 bg-secondary-container rounded-xl -translate-x-4 translate-y-4 -z-10" />
-              <img src={PLACEHOLDER} alt="" className="w-full h-[320px] md:h-[500px] object-cover rounded-xl custom-shadow" />
+              <BrandPlaceholder className="h-[320px] md:h-[500px] rounded-xl custom-shadow" />
             </div>
             <div className="md:col-span-5 md:col-start-8 space-y-6 order-1 md:order-2">
               <div className="inline-flex items-center gap-2 bg-surface-container px-4 py-2 rounded-full font-label-sm text-label-sm text-primary">
@@ -68,7 +63,7 @@ export default function About() {
             </div>
             <div className="md:col-span-6 md:col-start-7 relative">
               <div className="absolute inset-0 bg-primary-fixed-dim/30 rounded-xl translate-x-4 -translate-y-4 -z-10" />
-              <img src={PLACEHOLDER} alt="" className="w-full h-[320px] md:h-[500px] object-cover rounded-xl custom-shadow" />
+              <BrandPlaceholder className="h-[320px] md:h-[500px] rounded-xl custom-shadow" />
             </div>
           </div>
         </Reveal>

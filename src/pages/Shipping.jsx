@@ -22,9 +22,9 @@ export default function Shipping() {
         <section className="mt-10 grid gap-5 md:grid-cols-2" aria-labelledby="shipping-areas">
           <h2 id="shipping-areas" className="sr-only">{t('shipping_areas_title')}</h2>
           {areas.map((area) => (
-            <article key={area.title} className="bg-surface-container-low rounded-xl p-6 border border-outline-variant/30 shadow-[0_20px_30px_rgba(212,132,154,0.04)]">
+            <article key={area.title} className="bg-surface-container-low dark:bg-[#242424] rounded-xl p-6 border border-outline-variant/30 shadow-[0_20px_30px_rgba(212,132,154,0.04)]">
               <h3 className="font-headline-md text-headline-md text-primary mb-3">{area.title}</h3>
-              <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">{area.body}</p>
+              <p className="font-body-md text-body-md text-on-surface-variant dark:text-[#d4d4d4] leading-relaxed">{area.body}</p>
             </article>
           ))}
         </section>

@@ -23,7 +23,13 @@ stable
 security definer
 set search_path = public
 as $$
-  select lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin.crochetbyalae@gmail.com';
+  select exists (
+    select 1
+    from public.admin_users
+    where lower(email) = lower(coalesce(auth.jwt() ->> 'email', ''))
+      and is_active = true
+      and role in ('admin', 'super_admin')
+  );
 $$;
 
 drop policy if exists "Admin can read admin audit log" on public.admin_audit_log;
@@ -31,7 +37,10 @@ create policy "Admin can read admin audit log"
   on public.admin_audit_log
   for select
   to authenticated
-  using (public.is_admin_user());
+  using (
+    public.is_super_admin_user()
+    or lower(admin_email) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  );
 
 revoke all on public.admin_audit_log from anon;
 revoke all on public.admin_audit_log from authenticated;

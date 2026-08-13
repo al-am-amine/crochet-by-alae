@@ -8,11 +8,10 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import GeoBanner from '../components/GeoBanner'
 import Icon from '../components/Icon'
+import BrandPlaceholder from '../components/BrandPlaceholder'
 import Reveal from '../components/Reveal'
 import { useLanguage } from '../i18n/LanguageContext'
 import { supabase } from '../lib/supabaseClient'
-
-const PLACEHOLDER = 'https://placehold.co/800x800/f5c6d0/79545d?text=Crochet+by+Alae'
 
 export default function Home() {
   const { t, lang } = useLanguage()
@@ -63,7 +62,7 @@ export default function Home() {
             <Reveal as="div" delay={80} className="md:col-span-6 md:col-start-1 relative mt-12 md:mt-0">
               <div className="absolute inset-0 bg-secondary-container rounded-full blur-[80px] opacity-40 transform translate-x-1/4 -translate-y-1/4 z-0" />
               <div className="relative z-10 rounded-[2rem] overflow-hidden shadow-[0_30px_30px_rgba(212,132,154,0.08)] transform -rotate-2 hover:rotate-0 transition-transform duration-500">
-                <img src={PLACEHOLDER} alt="" className="w-full h-[320px] md:h-[600px] object-cover hero-visual-drift" />
+                <BrandPlaceholder className="h-[320px] md:h-[600px] hero-visual-drift" />
               </div>
             </Reveal>
           </div>
@@ -98,7 +97,13 @@ export default function Home() {
           </Reveal>
 
           {products.length === 0 ? (
-            <p className="text-center text-sm text-on-surface-variant">—</p>
+            <div className="mx-auto flex max-w-xl flex-col items-center gap-4 rounded-2xl border border-outline-variant/40 bg-surface-container-low px-6 py-12 text-center">
+              <Icon name="inventory_2" size={34} className="text-primary" />
+              <p className="font-body-md text-body-md text-on-surface-variant">{t('no_products_yet')}</p>
+              <Link to="/custom-design" className="font-label-sm text-label-sm text-primary underline underline-offset-4 motion-press">
+                {t('nav_custom')}
+              </Link>
+            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter md:auto-rows-[300px]">
               {products[0] && (
@@ -110,11 +115,9 @@ export default function Home() {
                     to={`/product/${products[0].id}`}
                     className="block h-full group relative overflow-hidden rounded-xl shadow-[0_30px_30px_rgba(212,132,154,0.04)] bg-surface cursor-pointer motion-lift"
                   >
-                    <img
-                      src={products[0].images?.[0] || PLACEHOLDER}
-                      alt=""
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
+                    {products[0].images?.[0] ? (
+                      <img src={products[0].images[0]} alt={products[0].name || t('brand')} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    ) : <BrandPlaceholder />}
                     <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-surface/90 to-transparent p-6 pt-20">
                       <h3 className="font-headline-md text-headline-md text-on-surface mb-2">{products[0].name}</h3>
                       <p className="font-label-sm text-label-sm text-primary tracking-widest">{priceLabel(products[0])}</p>
@@ -129,11 +132,9 @@ export default function Home() {
                     to={`/product/${products[1].id}`}
                     className="block h-full group relative overflow-hidden rounded-xl shadow-[0_30px_30px_rgba(212,132,154,0.04)] bg-surface-container-low cursor-pointer hover:-translate-y-1 transition-transform motion-lift"
                   >
-                    <img
-                      src={products[1].images?.[0] || PLACEHOLDER}
-                      alt=""
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
+                    {products[1].images?.[0] ? (
+                      <img src={products[1].images[0]} alt={products[1].name || t('brand')} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    ) : <BrandPlaceholder />}
                     <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-surface-container-low/90 to-transparent p-4 pt-12">
                       <h3 className="font-headline-md text-on-surface text-xl">{products[1].name}</h3>
                       <p className="font-label-sm text-label-sm text-primary tracking-widest">{priceLabel(products[1])}</p>
@@ -148,11 +149,9 @@ export default function Home() {
                     to={`/product/${products[2].id}`}
                     className="block h-full group relative overflow-hidden rounded-xl shadow-[0_30px_30px_rgba(212,132,154,0.04)] bg-surface cursor-pointer transform md:translate-y-8 hover:-translate-y-1 transition-transform motion-lift"
                   >
-                    <img
-                      src={products[2].images?.[0] || PLACEHOLDER}
-                      alt=""
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
+                    {products[2].images?.[0] ? (
+                      <img src={products[2].images[0]} alt={products[2].name || t('brand')} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    ) : <BrandPlaceholder />}
                     <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-surface/90 to-transparent p-4 pt-12">
                       <h3 className="font-headline-md text-on-surface text-xl">{products[2].name}</h3>
                       <p className="font-label-sm text-label-sm text-primary tracking-widest">{priceLabel(products[2])}</p>
@@ -173,7 +172,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
             <div className="order-2 md:order-1 relative">
               <div className="aspect-square rounded-2xl overflow-hidden border-8 border-surface shadow-xl transform rotate-3">
-                <img src={PLACEHOLDER} alt="" className="w-full h-full object-cover" />
+                <BrandPlaceholder />
               </div>
             </div>
             <div className="order-1 md:order-2 space-y-6">

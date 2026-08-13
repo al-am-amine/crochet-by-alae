@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import Icon from '../components/Icon'
+import BrandPlaceholder from '../components/BrandPlaceholder'
 import { useLanguage } from '../i18n/LanguageContext'
 import { supabase } from '../lib/supabaseClient'
 import { uploadImage } from '../lib/storage'
@@ -107,11 +108,7 @@ export default function CustomRequest() {
               {t('custom_page_subtitle_short')}
             </p>
             <div className="mt-4 relative h-64 w-full rounded-2xl overflow-hidden shadow-[0_30px_30px_rgba(212,132,154,0.1)] group">
-              <img
-                src="https://placehold.co/800x600/f5c6d0/79545d?text=Crochet+by+Alae"
-                alt=""
-                className="w-full h-full object-cover motion-lift transition-transform duration-700 group-hover:scale-105"
-              />
+              <BrandPlaceholder className="motion-lift transition-transform duration-700 group-hover:scale-105" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
             </div>
           </div>
@@ -217,6 +214,11 @@ export default function CustomRequest() {
                     </button>
                   )
                 })}
+                {channels.length === 0 && (
+                  <p className="font-body-md text-sm text-on-surface-variant dark:text-white/70 text-center rounded-xl bg-surface-container-low dark:bg-white/5 border border-outline-variant/60 px-4 py-3">
+                    {t('no_channels_configured')}
+                  </p>
+                )}
               </div>
             </div>
           </div>

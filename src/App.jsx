@@ -16,6 +16,7 @@ import CustomRequestsAdmin from './pages/admin/CustomRequestsAdmin'
 import CustomersAdmin from './pages/admin/CustomersAdmin'
 import SettingsAdmin from './pages/admin/SettingsAdmin'
 import SecurityLog from './pages/admin/SecurityLog'
+import SuperAdmin from './pages/admin/SuperAdmin'
 
 export default function App() {
   const location = useLocation()
@@ -42,6 +43,8 @@ export default function App() {
         <Route path="settings" element={<SettingsAdmin />} />
         <Route path="security-log" element={<SecurityLog />} />
       </Route>
+      <Route path="/admin-portal" element={<SuperAdmin />} />
+      <Route path="/admin-portal/*" element={<SuperAdmin />} />
       </Routes>
     </div>
   )

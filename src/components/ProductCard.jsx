@@ -3,15 +3,16 @@
   palette, imagery, and icon language; motion is limited to reveal, lift,
   and the existing image scale interaction.
 */
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import BrandPlaceholder from './BrandPlaceholder'
 import { useLanguage } from '../i18n/LanguageContext'
 import Reveal from './Reveal'
 
-const PLACEHOLDER_IMAGE = 'https://placehold.co/600x600/f5c6d0/79545d?text=Crochet+by+Alae'
-
 export default function ProductCard({ product, lift = false, delay = 0 }) {
   const { t, lang } = useLanguage()
-  const image = product.images?.[0] || PLACEHOLDER_IMAGE
+  const [imageBroken, setImageBroken] = useState(false)
+  const image = product.images?.[0]
   const hasPrice = product.show_price && product.price !== null && product.price !== undefined && product.price !== ''
   const qaMode = import.meta.env.DEV && new URLSearchParams(window.location.search).get('qa') === 'fixtures'
   const detailPath = qaMode ? `/product/${product.id}?qa=fixtures` : `/product/${product.id}`
@@ -25,15 +26,14 @@ export default function ProductCard({ product, lift = false, delay = 0 }) {
         }`}
       >
         <div className="relative h-80 overflow-hidden bg-surface-container-low">
-          <img
-            src={image}
-            alt={product.name || t('brand')}
-            onError={(event) => {
-              event.currentTarget.onerror = null
-              event.currentTarget.src = PLACEHOLDER_IMAGE
-            }}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-          />
+          {image && !imageBroken ? (
+            <img
+              src={image}
+              alt={product.name || t('brand')}
+              onError={() => setImageBroken(true)}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            />
+          ) : <BrandPlaceholder label={product.name || t('brand')} />}
           {product.status === 'custom_only' && (
             <div className="absolute top-4 end-4 bg-surface/80 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1 font-label-sm text-label-sm text-secondary">
               {t('status_custom_only')}

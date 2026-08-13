@@ -4,6 +4,7 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import GeoBanner from '../components/GeoBanner'
 import Icon from '../components/Icon'
+import BrandPlaceholder from '../components/BrandPlaceholder'
 import { useLanguage } from '../i18n/LanguageContext'
 import { useCart } from '../lib/CartContext'
 import { supabase } from '../lib/supabaseClient'
@@ -120,7 +121,8 @@ export default function CartCheckout() {
         </h1>
 
         {items.length === 0 ? (
-          <div className="text-center py-16">
+          <div className="mx-auto flex max-w-xl flex-col items-center gap-4 rounded-2xl border border-outline-variant/40 bg-surface-container-low px-6 py-16 text-center">
+            <Icon name="shopping_basket" size={38} className="text-primary" />
             <p className="font-body-md text-on-surface-variant mb-4">{t('cart_empty')}</p>
             <Link to="/shop" className="text-primary font-label-sm text-label-sm underline">
               {t('browse_shop')}
@@ -135,12 +137,14 @@ export default function CartCheckout() {
               {items.map((item, idx) => (
                 <div
                   key={`${item.productId}-${item.color || ''}-${item.size || ''}`}
-                  className="bg-surface-container-low rounded-xl p-unit-4 flex gap-unit-4 shadow-[0_20px_30px_rgba(212,132,154,0.03)] hover:shadow-[0_25px_35px_rgba(212,132,154,0.06)] transition-shadow duration-300 items-center"
+                  className="bg-surface-container-low dark:bg-[#242424] rounded-xl p-unit-4 flex gap-unit-4 shadow-[0_20px_30px_rgba(212,132,154,0.03)] hover:shadow-[0_25px_35px_rgba(212,132,154,0.06)] transition-shadow duration-300 items-center"
                 >
-                  <img src={item.image} alt={item.name || t('brand')} className="w-20 h-20 rounded-lg object-cover shrink-0" />
+                  {item.image ? (
+                    <img src={item.image} alt={item.name || t('brand')} className="w-20 h-20 rounded-lg object-cover shrink-0" />
+                  ) : <BrandPlaceholder label={item.name || t('brand')} className="h-20 w-20 shrink-0 rounded-lg" />}
                   <div className="flex-1 min-w-0">
                     <p className="font-label-sm text-label-sm text-on-surface dark:text-white">{item.name}</p>
-                    <p className="font-body-md text-sm text-on-surface-variant">
+                    <p className="font-body-md text-sm text-on-surface-variant dark:text-[#d4d4d4]">
                       {[item.color, item.size].filter(Boolean).join('، ')}
                     </p>
                     <div className="flex items-center gap-3 mt-2">

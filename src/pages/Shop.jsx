@@ -7,6 +7,8 @@ import { useSearchParams } from 'react-router-dom'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import GeoBanner from '../components/GeoBanner'
+import BrandPlaceholder from '../components/BrandPlaceholder'
+import Icon from '../components/Icon'
 import ProductCard from '../components/ProductCard'
 import Reveal from '../components/Reveal'
 import { useLanguage } from '../i18n/LanguageContext'
@@ -73,7 +75,7 @@ export default function Shop() {
     <div className="min-h-screen page-shell">
       <Header />
 
-      <main className="max-w-container-max mx-auto px-5 md:px-margin-edge py-section-gap min-h-screen">
+      <main className="max-w-container-max mx-auto px-5 md:px-margin-edge py-section-gap">
         <Reveal as="div" className="flex flex-col items-center mb-section-gap text-center space-y-6">
           <h1 className="font-display-lg text-headline-lg md:text-display-lg text-on-surface dark:text-white">
             {t('nav_shop_all')}
@@ -124,7 +126,13 @@ export default function Shop() {
         ) : loadError ? (
           <p className="text-center text-sm text-error py-16">{t('load_error')}</p>
         ) : visible.length === 0 ? (
-          <p className="text-center text-sm text-on-surface-variant py-16">{t('no_products_yet')}</p>
+          <div className="mx-auto flex max-w-xl flex-col items-center gap-4 rounded-2xl border border-outline-variant/40 bg-surface-container-low px-6 py-16 text-center">
+            <Icon name="inventory_2" size={38} className="text-primary" />
+            <p className="font-body-md text-body-md text-on-surface-variant">{t('no_products_yet')}</p>
+            <a href="/custom-design" className="font-label-sm text-label-sm text-primary underline underline-offset-4 motion-press">
+              {t('nav_custom')}
+            </a>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter">
             {visible.map((p, index) => (

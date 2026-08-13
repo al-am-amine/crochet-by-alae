@@ -7,6 +7,7 @@ import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import Icon from '../components/Icon'
+import BrandPlaceholder from '../components/BrandPlaceholder'
 import { useLanguage } from '../i18n/LanguageContext'
 import { supabase } from '../lib/supabaseClient'
 import { useCart } from '../lib/CartContext'
@@ -27,12 +28,14 @@ export default function ProductDetail() {
   const [size, setSize] = useState('')
   const [notes, setNotes] = useState('')
   const [justAdded, setJustAdded] = useState(false)
+  const [imageBroken, setImageBroken] = useState(false)
 
   useEffect(() => {
     let cancelled = false
     setLoading(true)
     setActiveImage(0)
     setJustAdded(false)
+    setImageBroken(false)
 
     async function loadProduct() {
       if (qaMode) {
@@ -75,17 +78,30 @@ export default function ProductDetail() {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
-        <p className="flex-1 flex items-center justify-center text-sm text-on-surface-variant">
-          {t('product_not_found')}
-        </p>
+        <main className="flex flex-1 items-center justify-center px-5 py-20 md:px-margin-edge" aria-live="polite">
+          <div className="flex w-full max-w-xl flex-col items-center gap-5 rounded-2xl border border-outline-variant/40 bg-surface-container-low px-6 py-16 text-center shadow-sm">
+            <Icon name="inventory_2" size={42} className="text-primary" />
+            <h1 className="font-display-md text-headline-md text-on-surface dark:text-white">
+              {t('product_not_found')}
+            </h1>
+            <p className="max-w-md font-body-md text-body-md text-on-surface-variant">
+              {t('no_products_yet')}
+            </p>
+            <Link
+              to="/shop"
+              className="motion-press inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-label-sm text-label-sm text-on-primary shadow-sm transition-colors hover:bg-primary/90"
+            >
+              <Icon name="shopping_bag" size={18} />
+              {t('browse_shop')}
+            </Link>
+          </div>
+        </main>
         <Footer />
       </div>
     )
   }
 
-  const images = product.images?.length
-    ? product.images
-    : ['https://placehold.co/800x1000/f5c6d0/79545d?text=Crochet+by+Alae']
+  const images = product.images?.length ? product.images : []
 
   function handleAddToCart() {
     addItem({
@@ -116,11 +132,14 @@ export default function ProductDetail() {
           {/* Gallery */}
           <div className="w-full lg:w-3/5 flex flex-col gap-4 order-1">
             <div className="w-full aspect-[4/5] rounded-xl overflow-hidden shadow-[0_30px_30px_rgba(212,132,154,0.04)] bg-surface-container-low group cursor-zoom-in relative">
-              <img
-                src={images[activeImage]}
-                alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
+                {images[activeImage] && !imageBroken ? (
+                  <img
+                    src={images[activeImage]}
+                    alt={product.name}
+                    onError={() => setImageBroken(true)}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                ) : <BrandPlaceholder label={product.name} />}
             </div>
             {images.length > 1 && (
               <div className="flex gap-4 overflow-x-auto pb-2 snap-x">

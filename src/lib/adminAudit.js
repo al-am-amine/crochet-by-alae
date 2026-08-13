@@ -5,7 +5,49 @@
 */
 import { supabase } from './supabaseClient'
 
-export const ADMIN_EMAIL = (import.meta.env.VITE_ADMIN_EMAIL || 'admin.crochetbyalae@gmail.com').trim().toLowerCase()
+const DEFAULT_ADMIN_EMAILS = [
+  'm.amine.amttout@gmail.com',
+]
+const REMOVED_ADMIN_EMAILS = new Set(['admin.crochetbyalae@gmail.com'])
+
+const configuredAdminEmails = String(import.meta.env.VITE_ADMIN_EMAILS || import.meta.env.VITE_ADMIN_EMAIL || '')
+  .split(',')
+  .map((email) => email.trim().toLowerCase())
+  .filter((email) => email && !REMOVED_ADMIN_EMAILS.has(email))
+
+export const ADMIN_EMAILS = [...new Set([...DEFAULT_ADMIN_EMAILS, ...configuredAdminEmails])]
+export const ADMIN_EMAIL = ADMIN_EMAILS[0]
+const configuredSuperAdminEmails = String(import.meta.env.VITE_SUPER_ADMIN_EMAILS || ADMIN_EMAIL)
+  .split(',')
+  .map((email) => email.trim().toLowerCase())
+  .filter((email) => email && !REMOVED_ADMIN_EMAILS.has(email))
+export const SUPER_ADMIN_EMAILS = [...new Set(configuredSuperAdminEmails)]
+
+export function isAdminEmail(email) {
+  return ADMIN_EMAILS.includes(String(email || '').trim().toLowerCase())
+}
+
+export function isSuperAdminEmail(email) {
+  return SUPER_ADMIN_EMAILS.includes(String(email || '').trim().toLowerCase())
+}
+
+export async function getCurrentAdminRole() {
+  try {
+    const { data, error } = await supabase.rpc('get_current_admin_role')
+    return { role: typeof data === 'string' ? data : data?.role || null, error }
+  } catch (error) {
+    return { role: null, error }
+  }
+}
+
+export async function getCurrentAdminAccess() {
+  try {
+    const { data, error } = await supabase.rpc('get_current_admin_access')
+    return { data: data || null, error }
+  } catch (error) {
+    return { data: null, error }
+  }
+}
 
 export function getAdminAttemptContext() {
   if (typeof navigator === 'undefined') return {}
@@ -70,11 +112,17 @@ export async function logAdminAction(action, details = {}) {
 }
 
 export async function getAdminAuditLogs() {
-  const { data, error } = await supabase
+  const { data: userData } = await supabase.auth.getUser()
+  const email = String(userData?.user?.email || '').trim().toLowerCase()
+  const { data: access } = await getCurrentAdminAccess()
+  let query = supabase
     .from('admin_audit_log')
     .select('id, admin_email, action, details, ip_hint, created_at')
     .order('created_at', { ascending: false })
     .limit(200)
+
+  if (access?.role !== 'super_admin') query = query.eq('admin_email', email)
+  const { data, error } = await query
 
   return { data: data ?? [], error }
 }

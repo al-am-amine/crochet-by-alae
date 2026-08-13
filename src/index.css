@@ -16,6 +16,43 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Dark mode contrast contract: the original rose accent remains unchanged,
+   while neutral surfaces and supporting copy become readable on charcoal. */
+.dark .text-on-surface {
+  color: #ffffff !important;
+}
+
+.dark .text-on-surface-variant,
+.dark .text-on-surface-variant\/75,
+.dark .text-on-surface-variant\/60,
+.dark .text-on-surface-variant\/50 {
+  color: #d4d4d4 !important;
+}
+
+.dark .text-outline {
+  color: #bdb3b6 !important;
+}
+
+.dark .bg-surface {
+  background-color: #1f1f1f !important;
+}
+
+.dark .bg-surface-bright,
+.dark .bg-surface-container-low,
+.dark .bg-surface-container-lowest {
+  background-color: #242424 !important;
+}
+
+.dark .bg-surface-container {
+  background-color: #292929 !important;
+}
+
+.dark .bg-surface-container-high,
+.dark .bg-surface-container-highest,
+.dark .bg-surface-variant {
+  background-color: #383838 !important;
+}
+
 /* Material Symbols default rendering (outlined weight, matches the
    Stitch & Soul icon style used across every screen). */
 .material-symbols-outlined {
