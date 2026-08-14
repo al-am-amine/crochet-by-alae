@@ -85,7 +85,7 @@ export default function ProductDetail() {
               {t('product_not_found')}
             </h1>
             <p className="max-w-md font-body-md text-body-md text-on-surface-variant">
-              {t('no_products_yet')}
+              {t('product_not_found_description')}
             </p>
             <Link
               to="/shop"

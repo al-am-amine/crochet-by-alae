@@ -1,16 +1,27 @@
+/*
+  Design reminder: keep the admin settings calm, precise, and aligned with
+  the original crochet-pink identity. RTL must change reading order, not break
+  control geometry; small channel marks should remain recognizable and airy.
+*/
 import { useEffect, useState } from 'react'
 import Icon from '../../components/Icon'
+import ChannelIcon from '../../components/ChannelIcon'
 import { useLanguage } from '../../i18n/LanguageContext'
 import { supabase } from '../../lib/supabaseClient'
 import { uploadImage } from '../../lib/storage'
 
-const CHANNEL_ICON = { whatsapp: 'chat', instagram: 'photo_camera', phone: 'call', tiktok: 'music_note' }
-
 function Toggle({ checked, onChange }) {
   return (
-    <label className="relative inline-flex items-center cursor-pointer shrink-0">
-      <input type="checkbox" className="sr-only peer" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      <div className="w-11 h-6 bg-surface-container-high rounded-full peer peer-checked:after:-translate-x-full rtl:peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary" />
+    <label dir="ltr" className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full focus-within:ring-2 focus-within:ring-primary/40 focus-within:ring-offset-2">
+      <input
+        type="checkbox"
+        className="peer sr-only"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        role="switch"
+        aria-checked={checked}
+      />
+      <span className="relative block h-6 w-11 rounded-full bg-surface-container-high transition-colors duration-200 peer-checked:bg-primary after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:shadow-sm after:content-[''] after:transition-transform after:duration-200 peer-checked:after:translate-x-5" />
     </label>
   )
 }
@@ -150,9 +161,7 @@ export default function SettingsAdmin() {
                   {channels.map((c) => (
                     <tr key={c.id} className="border-b border-outline-variant/30 last:border-0 hover:bg-surface/50 transition-colors">
                       <td className="py-4 px-2">
-                        <div className="w-10 h-10 rounded bg-surface flex items-center justify-center text-primary shadow-sm">
-                          <Icon name={CHANNEL_ICON[c.type] || 'link'} size={20} />
-                        </div>
+                        <ChannelIcon type={c.type} size={20} />
                       </td>
                       <td className="py-4 px-2">
                         <select

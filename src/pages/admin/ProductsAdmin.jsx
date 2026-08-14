@@ -33,6 +33,9 @@ export default function ProductsAdmin() {
   const [editing, setEditing] = useState(null)
   const [uploading, setUploading] = useState(false)
   const [formError, setFormError] = useState('')
+  const [actionError, setActionError] = useState('')
+  const [actionSuccess, setActionSuccess] = useState('')
+  const [deletingId, setDeletingId] = useState(null)
 
   async function loadProducts() {
     setLoading(true)
@@ -105,10 +108,29 @@ export default function ProductsAdmin() {
   }
 
   async function handleDelete(id) {
-    if (!confirm('تأكيد الحذف؟')) return
-    const { error } = await supabase.from('products').delete().eq('id', id)
-    if (!error) await logAdminAction('product_deleted', { product_id: id })
-    loadProducts()
+    if (!window.confirm(t('admin_product_delete_confirm'))) return
+    setDeletingId(id)
+    setActionError('')
+    setActionSuccess('')
+    try {
+      const { data, error } = await supabase.rpc('delete_product_safely', {
+        target_product_id: id,
+      })
+      if (error) {
+        console.error('Product deletion failed', error)
+        setActionError(t('admin_delete_error'))
+        return
+      }
+
+      await logAdminAction('product_deleted', {
+        product_id: id,
+        detached_orders: Number(data?.detached_orders || 0),
+      })
+      setActionSuccess(t('admin_product_delete_success'))
+      await loadProducts()
+    } finally {
+      setDeletingId(null)
+    }
   }
 
   if (editing) {
@@ -218,13 +240,21 @@ export default function ProductsAdmin() {
               <button onClick={() => startEdit(p)} className="p-2 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-primary transition-colors">
                 <Icon name="edit" size={18} />
               </button>
-              <button onClick={() => handleDelete(p.id)} className="p-2 rounded-full hover:bg-surface-container-high text-outline hover:text-error transition-colors">
+              <button
+                onClick={() => handleDelete(p.id)}
+                disabled={deletingId === p.id}
+                aria-label={t('admin_delete')}
+                title={t('admin_delete')}
+                className="p-2 rounded-full hover:bg-surface-container-high text-outline hover:text-error transition-colors disabled:opacity-50 disabled:cursor-wait"
+              >
                 <Icon name="delete" size={18} />
               </button>
             </div>
           ))}
         </div>
       )}
+      {actionError && <p role="alert" className="mt-4 font-body-md text-sm text-error">{actionError}</p>}
+      {actionSuccess && <p role="status" className="mt-4 font-body-md text-sm text-green-700 dark:text-green-300">{actionSuccess}</p>}
     </>
   )
 }

@@ -22,6 +22,22 @@ html {
   color: #ffffff !important;
 }
 
+.dark .text-on-background {
+  color: #fffaf8 !important;
+}
+
+.dark .text-primary {
+  color: #ffb1c5 !important;
+}
+
+.dark .text-secondary {
+  color: #f0b7c3 !important;
+}
+
+.dark .text-error {
+  color: #ffb4ab !important;
+}
+
 .dark .text-on-surface-variant,
 .dark .text-on-surface-variant\/75,
 .dark .text-on-surface-variant\/60,

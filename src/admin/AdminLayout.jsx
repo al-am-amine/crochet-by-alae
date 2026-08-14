@@ -1,3 +1,8 @@
+/*
+  Design reminder: this is a focused internal dashboard with the original
+  warm pink accents. Direction-aware motion should always move toward the
+  visual edge of the navigation, never against the reading direction.
+*/
 import { useState } from 'react'
 import { NavLink, Outlet, Navigate } from 'react-router-dom'
 import Icon from '../../components/Icon'
@@ -36,7 +41,7 @@ function SidebarContent({ t, onNavigate }) {
               `flex items-center gap-3 p-3 rounded-lg font-label-sm text-label-sm transition-all duration-300 ${
                 isActive
                   ? 'bg-primary-container text-on-primary-container font-bold'
-                  : 'text-on-surface-variant hover:bg-surface-container-high hover:translate-x-[4px]'
+                  : 'text-on-surface-variant hover:bg-surface-container-high ltr:hover:translate-x-[4px] rtl:hover:-translate-x-[4px]'
               }`
             }
           >
@@ -57,7 +62,7 @@ function SidebarContent({ t, onNavigate }) {
         </NavLink>
         <button
           onClick={() => supabase.auth.signOut()}
-          className="flex items-center gap-3 p-3 text-on-surface-variant hover:bg-surface-container-high transition-all duration-300 rounded-lg hover:translate-x-[4px]"
+          className="flex items-center gap-3 p-3 text-on-surface-variant hover:bg-surface-container-high transition-all duration-300 rounded-lg ltr:hover:translate-x-[4px] rtl:hover:-translate-x-[4px]"
         >
           <Icon name="logout" size={20} />
           <span className="font-label-sm text-label-sm">{t('admin_logout')}</span>

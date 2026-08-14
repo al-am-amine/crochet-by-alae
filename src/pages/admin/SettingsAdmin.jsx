@@ -1,18 +1,29 @@
-/* Security reminder: audit admin setting changes only; never collect storefront visitor telemetry. */
+/*
+  Design reminder: keep the admin settings calm, precise, and aligned with
+  the original crochet-pink identity. RTL changes reading order, not control
+  geometry; channel marks remain recognizable and airy at small sizes.
+  Security reminder: audit admin setting changes only; never collect storefront visitor telemetry.
+*/
 import { useEffect, useState } from 'react'
 import Icon from '../../components/Icon'
+import ChannelIcon from '../../components/ChannelIcon'
 import { useLanguage } from '../../i18n/LanguageContext'
 import { supabase } from '../../lib/supabaseClient'
 import { uploadImage } from '../../lib/storage'
 import { logAdminAction } from '../../lib/adminAudit'
 
-const CHANNEL_ICON = { whatsapp: 'chat', instagram: 'photo_camera', phone: 'call', tiktok: 'music_note' }
-
 function Toggle({ checked, onChange }) {
   return (
-    <label className="relative inline-flex items-center cursor-pointer shrink-0">
-      <input type="checkbox" className="sr-only peer" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      <div className="w-11 h-6 bg-surface-container-high rounded-full peer peer-checked:after:-translate-x-full rtl:peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary" />
+    <label dir="ltr" className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full focus-within:ring-2 focus-within:ring-primary/40 focus-within:ring-offset-2">
+      <input
+        type="checkbox"
+        className="sr-only peer"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        role="switch"
+        aria-checked={checked}
+      />
+      <span className="relative block h-6 w-11 rounded-full bg-surface-container-high transition-colors duration-200 peer-checked:bg-primary after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:shadow-sm after:content-[''] after:transition-transform after:duration-200 peer-checked:after:translate-x-5" />
     </label>
   )
 }
@@ -40,7 +51,10 @@ export default function SettingsAdmin() {
     setSettings(merged)
     const { id, ...payload } = merged
     const { error } = await supabase.from('site_settings').update(payload).eq('id', 1)
-    if (!error) await logAdminAction('settings_updated', { fields: Object.keys(next) })
+    if (!error) {
+      await logAdminAction('settings_updated', { fields: Object.keys(next) })
+      if (next.logo_url) window.dispatchEvent(new Event('site-settings-updated'))
+    }
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
@@ -108,7 +122,7 @@ export default function SettingsAdmin() {
             <label className="block font-label-sm text-label-sm text-on-surface dark:text-white mb-unit-2">{t('admin_logo_upload')}</label>
             <label className="border-2 border-dashed border-outline-variant rounded-xl p-8 flex flex-col items-center justify-center bg-surface dark:bg-[#1A1A1A] hover:bg-surface-container transition-colors cursor-pointer group">
               {settings.logo_url ? (
-                <img src={settings.logo_url} alt="logo" className="w-20 h-20 rounded-lg object-cover mb-2" />
+                <img src={settings.logo_url} alt="logo" className="w-20 h-20 rounded-full object-cover ring-1 ring-primary/15 shadow-sm mb-2" />
               ) : (
                 <Icon name="cloud_upload" size={36} className="text-outline mb-2 group-hover:text-primary transition-colors" />
               )}
@@ -158,9 +172,7 @@ export default function SettingsAdmin() {
                   {channels.map((c) => (
                     <tr key={c.id} className="border-b border-outline-variant/30 last:border-0 hover:bg-surface/50 transition-colors">
                       <td className="py-4 px-2">
-                        <div className="w-10 h-10 rounded bg-surface flex items-center justify-center text-primary shadow-sm">
-                          <Icon name={CHANNEL_ICON[c.type] || 'link'} size={20} />
-                        </div>
+                        <ChannelIcon type={c.type} size={20} />
                       </td>
                       <td className="py-4 px-2">
                         <select

@@ -4,11 +4,10 @@
 */
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import Icon from './Icon'
+import BrandLogo from './BrandLogo'
+import ChannelIcon from './ChannelIcon'
 import { useLanguage } from '../i18n/LanguageContext'
 import { getEnabledChannels } from '../lib/contactChannels'
-
-const CHANNEL_ICONS = { whatsapp: 'chat', instagram: 'photo_camera', phone: 'call', tiktok: 'music_note' }
 
 function channelHref(channel) {
   const value = String(channel.value || '').trim()
@@ -36,7 +35,7 @@ export default function Footer() {
   return (
     <footer className="w-full py-section-gap px-5 md:px-margin-edge flex flex-col md:flex-row-reverse justify-between items-center gap-6 bg-surface-container-low dark:bg-[#211a17] border-t border-outline-variant/40 mt-section-gap">
       <div className="text-center md:text-right">
-        <div className="font-headline-md text-headline-md text-primary mb-2">{t('brand')}</div>
+        <BrandLogo label={t('brand')} showLabel imgClassName="h-12 w-12" className="justify-center md:justify-start mb-3" />
         <p className="font-body-md text-body-md text-secondary">{t('footer_copyright')}</p>
         <p className="font-label-sm text-label-sm text-on-surface-variant mt-2 opacity-80">
           {t('footer_delivery_note')}
@@ -64,7 +63,7 @@ export default function Footer() {
                 rel={c.type === 'phone' ? undefined : 'noreferrer'}
                 aria-label={c.type}
               >
-                <Icon name={CHANNEL_ICONS[c.type] || 'link'} size={20} className="text-primary hover:opacity-70 transition-opacity" />
+                <ChannelIcon type={c.type} size={19} className="transition-transform duration-200 hover:-translate-y-0.5" />
               </a>
             ))}
           </div>

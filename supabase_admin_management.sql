@@ -141,9 +141,10 @@ set role = excluded.role,
 
 drop policy if exists "Super admins can read admin users" on public.admin_users;
 drop policy if exists "Admins with user management can read admin users" on public.admin_users;
-create policy "Admins with user management can read admin users"
+drop policy if exists "Only Super Admin can read admin users" on public.admin_users;
+create policy "Only Super Admin can read admin users"
   on public.admin_users for select to authenticated
-  using (public.is_admin_permission_allowed('admin_users.manage'));
+  using (public.is_super_admin_user());
 
 revoke all on public.admin_users from anon;
 revoke all on public.admin_users from authenticated;

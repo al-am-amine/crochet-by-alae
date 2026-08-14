@@ -91,14 +91,14 @@ export default function CustomRequest() {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-grow pt-6 pb-section-gap px-5 md:px-margin-edge max-w-container-max mx-auto w-full relative">
+      <main className="flex-grow pt-28 md:pt-32 pb-section-gap px-5 md:px-margin-edge max-w-container-max mx-auto w-full relative">
         <div className="absolute top-20 right-10 w-64 h-64 bg-secondary-container/20 rounded-full blur-3xl -z-10" />
         <div className="absolute bottom-40 left-10 w-80 h-80 bg-primary-container/10 rounded-full blur-3xl -z-10" />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
           {/* Intro */}
           <div className="lg:col-span-5 lg:col-start-1 lg:pl-12 flex flex-col gap-6 lg:sticky lg:top-32">
-            <h1 className="font-display-lg text-headline-lg md:text-display-lg text-primary mb-2">
+            <h1 className="font-display-lg text-headline-lg md:text-display-lg text-primary mb-2 leading-tight break-words">
               {t('custom_page_title')}
             </h1>
             <p className="font-body-lg text-body-lg text-on-surface-variant dark:text-white/75 leading-relaxed">

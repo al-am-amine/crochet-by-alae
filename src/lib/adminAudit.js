@@ -126,3 +126,12 @@ export async function getAdminAuditLogs() {
 
   return { data: data ?? [], error }
 }
+
+export async function clearSecurityLog() {
+  try {
+    const { data, error } = await supabase.rpc('clear_admin_audit_log')
+    return { data: Number(data || 0), error }
+  } catch (error) {
+    return { data: 0, error }
+  }
+}

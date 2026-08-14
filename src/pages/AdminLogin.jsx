@@ -2,12 +2,15 @@
   Design reminder: preserve the original warm login card and restrained motion;
   only a verified Supabase admin role can enter the protected area.
 */
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
+import AdminControls from '../components/AdminControls'
+import BrandLogo from '../components/BrandLogo'
 import { useLanguage } from '../i18n/LanguageContext'
 import { supabase } from '../lib/supabaseClient'
 import { checkAdminLoginGate, getAdminAttemptContext, getCurrentAdminAccess, logAdminLoginAttempt } from '../lib/adminAudit'
+import { getAdminAccessRequestStatus } from '../lib/adminAccessRequests'
 
 export default function AdminLogin() {
   const { t } = useLanguage()
@@ -18,6 +21,14 @@ export default function AdminLogin() {
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const [failedAttempts, setFailedAttempts] = useState(() => Number(sessionStorage.getItem('admin_failed_attempts') || 0))
+
+  useEffect(() => {
+    const notice = sessionStorage.getItem('admin_login_notice')
+    if (notice === 'pending' || notice === 'rejected') {
+      setError(t(notice === 'pending' ? 'admin_login_pending' : 'admin_login_rejected'))
+      sessionStorage.removeItem('admin_login_notice')
+    }
+  }, [t])
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -38,7 +49,18 @@ export default function AdminLogin() {
       setFailedAttempts(nextAttempts)
       sessionStorage.setItem('admin_failed_attempts', String(nextAttempts))
       await logAdminLoginAttempt({ email: normalizedEmail, success: false, details: { reason: 'invalid_credentials', ...attemptContext } })
-      setError(t('admin_login_error'))
+      setError(signInError.code === 'email_not_confirmed' || /email not confirmed/i.test(signInError.message || '')
+        ? t('admin_login_email_unconfirmed')
+        : t('admin_login_error'))
+      return
+    }
+
+    const { data: requestStatusData, error: requestStatusError } = await getAdminAccessRequestStatus()
+    const requestStatus = requestStatusData?.request?.status
+    if (!requestStatusError && (requestStatus === 'pending' || requestStatus === 'rejected')) {
+      await logAdminLoginAttempt({ email: normalizedEmail, success: false, details: { reason: `${requestStatus}_request`, ...attemptContext } })
+      await supabase.auth.signOut()
+      setError(t(requestStatus === 'pending' ? 'admin_login_pending' : 'admin_login_rejected'))
       return
     }
 
@@ -47,7 +69,7 @@ export default function AdminLogin() {
     if (!isAllowedAdmin) {
       await logAdminLoginAttempt({ email: normalizedEmail, success: false, details: { reason: 'unauthorized_account', ...attemptContext } })
       await supabase.auth.signOut()
-      setError(t('admin_login_not_authorized'))
+      setError(requestStatusError ? t('admin_login_status_error') : requestStatus === 'approved' ? t('admin_login_approved_sync_error') : t('admin_login_not_authorized'))
       return
     }
 
@@ -58,13 +80,14 @@ export default function AdminLogin() {
   }
 
   return (
-    <div className="bg-[#FDF5E6] dark:bg-[#1A1A1A] min-h-screen flex items-center justify-center p-gutter font-body-md text-on-background dark:text-white relative overflow-hidden">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#FDF5E6] p-gutter font-body-md text-on-background dark:bg-[#1A1A1A] dark:text-white">
+      <div className="absolute end-5 top-5 z-20"><AdminControls /></div>
       <div className="absolute top-[-10%] left-[-5%] w-64 h-64 rounded-full bg-secondary-container blur-3xl opacity-30 pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-5%] w-96 h-96 rounded-full bg-primary-container blur-3xl opacity-20 pointer-events-none" />
       <main className="w-full max-w-md relative z-10">
         <div className="bg-surface dark:bg-[#242019] rounded-xl shadow-[0_30px_30px_rgba(212,132,154,0.04)] border border-outline-variant/30 p-margin-edge overflow-hidden relative transition-all duration-300 hover:shadow-[0_40px_40px_rgba(212,132,154,0.06)] hover:-translate-y-1">
           <div className="text-center mb-10">
-            <h1 className="font-headline-lg text-headline-lg text-primary italic mb-2 tracking-tight">Crochet by Alae</h1>
+            <BrandLogo label={t('brand')} showLabel imgClassName="h-20 w-20" className="mb-4 flex-col gap-3" />
             <p className="font-body-md text-body-md text-on-surface-variant">{t('admin_login_title')}</p>
             <p className="mt-3 text-xs leading-5 text-on-surface-variant/75">{t('admin_login_audit_notice')}</p>
           </div>
@@ -88,6 +111,7 @@ export default function AdminLogin() {
             {failedAttempts >= 3 && <p className="text-sm text-secondary" role="status">{t('admin_repeated_failures_warning')}</p>}
             <div className="pt-4"><button type="submit" disabled={loading} className="w-full bg-primary hover:bg-on-primary-container text-on-primary font-label-sm text-label-sm py-4 rounded-lg shadow-sm transition-all duration-300 hover:shadow-md flex items-center justify-center gap-2 group disabled:opacity-50 motion-press"><span>{t('admin_login_btn')}</span><Icon name="arrow_forward" className="group-hover:-translate-x-1 transition-transform rtl:rotate-180" size={20} /></button></div>
           </form>
+          <div className="mt-5 text-center"><Link to="/admin/request-access" className="text-sm font-semibold text-primary underline-offset-4 transition hover:underline">{t('admin_request_access')}</Link></div>
           <div className="mt-8 flex justify-center opacity-50"><div className="w-16 stitch-divider" /></div>
         </div>
         <div className="mt-8 text-center text-on-surface-variant/60 font-label-sm text-label-sm"><p>{t('footer_copyright')}</p></div>

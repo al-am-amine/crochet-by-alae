@@ -5,6 +5,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from './supabaseClient'
 import { getCurrentAdminAccess } from './adminAudit'
+import { getAdminAccessRequestStatus } from './adminAccessRequests'
 
 const AuthContext = createContext(null)
 
@@ -13,7 +14,7 @@ export function AuthProvider({ children }) {
   const [access, setAccess] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  async function loadAccess(nextSession) {
+  async function loadAccess(nextSession, { checkPendingRequest = false } = {}) {
     setSession(nextSession)
     if (!nextSession?.user?.email) {
       setAccess(null)
@@ -21,12 +22,28 @@ export function AuthProvider({ children }) {
       return
     }
     const { data, error } = await getCurrentAdminAccess()
-    setAccess(error ? null : data)
+    if (!error && data) {
+      setAccess(data)
+      setLoading(false)
+      return
+    }
+
+    setAccess(null)
+    if (checkPendingRequest && !error) {
+      const { data: requestStatusData } = await getAdminAccessRequestStatus()
+      const status = requestStatusData?.request?.status
+      if (status === 'pending' || status === 'rejected') {
+        sessionStorage.setItem('admin_login_notice', status)
+        setLoading(false)
+        await supabase.auth.signOut({ scope: 'local' })
+        return
+      }
+    }
     setLoading(false)
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => loadAccess(data.session))
+    supabase.auth.getSession().then(({ data }) => loadAccess(data.session, { checkPendingRequest: true }))
     const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
       window.setTimeout(() => void loadAccess(newSession), 0)
     })

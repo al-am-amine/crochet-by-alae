@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useLanguage } from '../../i18n/LanguageContext'
 import { supabase } from '../../lib/supabaseClient'
 import { logAdminAction } from '../../lib/adminAudit'
+import Icon from '../../components/Icon'
 
 const STATUS_KEYS = {
   new: 'order_status_new', preparing: 'order_status_preparing',
@@ -19,6 +20,9 @@ export default function OrdersAdmin() {
   const { t, lang } = useLanguage()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
+  const [actionError, setActionError] = useState('')
+  const [actionSuccess, setActionSuccess] = useState('')
+  const [deletingId, setDeletingId] = useState(null)
 
   async function load() {
     setLoading(true)
@@ -33,8 +37,34 @@ export default function OrdersAdmin() {
     const previousStatus = orders.find((order) => order.id === id)?.status || null
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)))
     const { error } = await supabase.from('orders').update({ status }).eq('id', id)
-    if (!error && previousStatus !== status) {
+    if (error) {
+      setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: previousStatus } : o)))
+      setActionError(t('generic_error'))
+      return
+    }
+    if (previousStatus !== status) {
       await logAdminAction('order_status_updated', { order_id: id, from_status: previousStatus, to_status: status })
+    }
+  }
+
+  async function handleDelete(id) {
+    if (!window.confirm(t('admin_order_delete_confirm'))) return
+    setDeletingId(id)
+    setActionError('')
+    setActionSuccess('')
+    try {
+      const { error } = await supabase.from('orders').delete().eq('id', id)
+      if (error) {
+        console.error('Order deletion failed', error)
+        setActionError(t('admin_delete_error'))
+        return
+      }
+
+      await logAdminAction('order_deleted', { order_id: id })
+      setOrders((prev) => prev.filter((order) => order.id !== id))
+      setActionSuccess(t('admin_order_delete_success'))
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -53,7 +83,7 @@ export default function OrdersAdmin() {
           <table className="w-full text-start font-body-md text-body-md">
             <thead>
               <tr className="border-b-2 border-surface-container-high">
-                {['المنتج', t('admin_customer'), 'البلدية', t('admin_date'), t('admin_total_amount'), t('admin_status_label')].map((h) => (
+                {['المنتج', t('admin_customer'), 'البلدية', t('admin_date'), t('admin_total_amount'), t('admin_status_label'), t('admin_actions')].map((h) => (
                   <th key={h} className="p-3 font-label-sm text-label-sm text-on-surface-variant">{h}</th>
                 ))}
               </tr>
@@ -82,12 +112,25 @@ export default function OrdersAdmin() {
                       ))}
                     </select>
                   </td>
+                  <td className="p-3">
+                    <button
+                      onClick={() => handleDelete(o.id)}
+                      disabled={deletingId === o.id}
+                      aria-label={t('admin_delete')}
+                      title={t('admin_delete')}
+                      className="p-2 rounded-full text-outline hover:bg-surface-container-high hover:text-error transition-colors disabled:opacity-50 disabled:cursor-wait"
+                    >
+                      <Icon name="delete" size={18} />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
+      {actionError && <p role="alert" className="mt-4 font-body-md text-sm text-error">{actionError}</p>}
+      {actionSuccess && <p role="status" className="mt-4 font-body-md text-sm text-green-700 dark:text-green-300">{actionSuccess}</p>}
     </>
   )
 }

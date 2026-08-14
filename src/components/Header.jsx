@@ -6,6 +6,8 @@ import Icon from './Icon'
 import { useLanguage } from '../i18n/LanguageContext'
 import { useTheme } from '../lib/ThemeContext'
 import { useCart } from '../lib/CartContext'
+import { useAuth } from '../lib/AuthContext'
+import BrandLogo from './BrandLogo'
 
 const NAV_LINKS = [
   { to: '/', key: 'nav_home' },
@@ -18,6 +20,7 @@ export default function Header() {
   const { t, lang, toggleLang } = useLanguage()
   const { theme, toggleTheme } = useTheme()
   const { items } = useCart()
+  const { isAdmin, loading: authLoading } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
@@ -34,8 +37,8 @@ export default function Header() {
       }`}
     >
       <div className="flex items-center gap-gutter">
-        <Link to="/" className="font-headline-lg text-headline-lg text-primary italic">
-          {t('brand')}
+        <Link to="/" aria-label={t('brand')} className="transition-transform duration-200 hover:scale-[1.03]">
+          <BrandLogo label={t('brand')} imgClassName="h-11 w-11 md:h-12 md:w-12" />
         </Link>
       </div>
 
@@ -73,6 +76,7 @@ export default function Header() {
             </span>
           )}
         </Link>
+        {!authLoading && isAdmin && <Link to="/admin" aria-label={t('admin_open_dashboard')} title={t('admin_open_dashboard')} className="text-primary transition hover:opacity-70 motion-press"><Icon name="admin_panel_settings" /></Link>}
         <button onClick={toggleTheme} aria-label="toggle theme" className="motion-press">
           <Icon
             name={theme === 'light' ? 'dark_mode' : 'light_mode'}
